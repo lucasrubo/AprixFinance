@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Plus,
   TrendingUp,
+  TrendingDown,
   Wallet,
   CreditCard,
   MessageSquare,
@@ -11,9 +12,12 @@ import {
   PieChart,
   Users,
   FileText,
+  RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTransactionModal } from "./contexts";
+import { useCreateReceiptModal } from "./contexts";
 import { useSearch } from "./contexts";
 import { TransactionItemProps } from "@/features/dashboard/types";
 import { StatCard } from "@/features/dashboard/components/stat-card";
@@ -34,6 +38,15 @@ export function DashboardClient({
 }: DashboardClientProps) {
   const { searchTerm } = useSearch();
   const { openTransactionModal } = useTransactionModal();
+  const { openCreateReceiptModal } = useCreateReceiptModal();
+  const router = useRouter();
+  const [isReloading, setIsReloading] = useState(false);
+
+  const handleReload = () => {
+    setIsReloading(true);
+    router.refresh();
+    setTimeout(() => setIsReloading(false), 2000); // Stop spinning after 2 seconds
+  };
 
   const filteredTransactions = recentTransactions.filter(
     (transaction) =>
@@ -48,12 +61,26 @@ export function DashboardClient({
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">Dashboard</h2>
-        <p className="mt-1 text-muted-foreground">
-          Bem-vindo de volta, {userProfile?.nome || "Usuário"}! Aqui está um
-          resumo das suas finanças.
-        </p>
+      <div className="flex justify-between w-full">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Dashboard</h2>
+          <p className="mt-1 text-muted-foreground">
+            Bem-vindo de volta, {userProfile?.nome || "Usuário"}! Aqui está um
+            resumo das suas finanças.
+          </p>
+        </div>
+        <div>
+          <button
+            onClick={handleReload}
+            disabled={isReloading}
+            className="p-2 rounded-lg hover:bg-muted transition-colors disabled:opacity-50"
+            title="Recarregar dados"
+          >
+            <RefreshCw
+              className={`h-5 w-5 text-muted-foreground ${isReloading ? "animate-spin" : ""}`}
+            />
+          </button>
+        </div>
       </div>
 
       {/* Stats Grid */}
@@ -79,9 +106,13 @@ export function DashboardClient({
         <StatCard
           title="Saldo Líquido"
           value={stats.net_balance_formatted}
-          subtext="Saldo positivo"
-          icon={TrendingUp}
-          colorClass="bg-blue-500 text-blue-600"
+          subtext={stats.net_balance >= 0 ? "Saldo positivo" : "Saldo negativo"}
+          icon={stats.net_balance >= 0 ? TrendingUp : TrendingDown}
+          colorClass={
+            stats.net_balance >= 0
+              ? "bg-green-500 text-green-600"
+              : "bg-red-500 text-red-600"
+          }
         />
         <StatCard
           title="Notas Fiscais"
@@ -101,14 +132,14 @@ export function DashboardClient({
           description="Adicionar nova despesa"
           icon={Plus}
           color="blue"
-          href="/dashboard/receipts"
+          onClick={openCreateReceiptModal}
         />
         <ActionCard
-          title="Ver Relatórios"
-          description="Análise detalhada de gastos"
+          title="Gastos Fixos"
+          description="Gerenciar despesas recorrentes"
           icon={PieChart}
           color="emerald"
-          href="/dashboard/reports"
+          href="/dashboard/fixed-expenses"
         />
         <ActionCard
           title="Gerenciar Grupos"

@@ -3,13 +3,16 @@
 import React, { useState } from "react";
 import { Sidebar } from "@/shared/components/sidebar";
 import { Header } from "@/shared/components/header";
-import { TransactionModal } from "@/shared/components/transaction-modal";
+import { TransactionModal } from "@/features/dashboard/components/transaction-modal";
+import { CreateReceiptModal } from "@/shared/components/create-receipt-modal";
 import { TransactionItemProps } from "@/features/dashboard/types";
 import {
   TransactionModalContext,
+  CreateReceiptModalContext,
   SearchContext,
   useTransactions,
   useTransactionModal,
+  useCreateReceiptModal,
   TransactionsProvider,
 } from "./contexts";
 
@@ -21,28 +24,42 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [selectedTransaction, setSelectedTransaction] =
     useState<TransactionItemProps | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateReceiptModalOpen, setIsCreateReceiptModalOpen] =
+    useState(false);
 
   const openTransactionModal = (transaction: TransactionItemProps) => {
     setSelectedTransaction(transaction);
     setIsModalOpen(true);
   };
 
-  const closeModal = () => {
+  const openCreateReceiptModal = () => {
+    setIsCreateReceiptModalOpen(true);
+  };
+
+  const closeTransactionModal = () => {
     setIsModalOpen(false);
     setSelectedTransaction(null);
   };
 
+  const closeCreateReceiptModal = () => {
+    setIsCreateReceiptModalOpen(false);
+  };
+
   return (
     <TransactionModalContext.Provider value={{ openTransactionModal }}>
-      <TransactionsProvider transactions={[]}>
-        <DashboardLayoutClient
-          selectedTransaction={selectedTransaction}
-          isModalOpen={isModalOpen}
-          closeModal={closeModal}
-        >
-          {children}
-        </DashboardLayoutClient>
-      </TransactionsProvider>
+      <CreateReceiptModalContext.Provider value={{ openCreateReceiptModal }}>
+        <TransactionsProvider transactions={[]}>
+          <DashboardLayoutClient
+            selectedTransaction={selectedTransaction}
+            isModalOpen={isModalOpen}
+            isCreateReceiptModalOpen={isCreateReceiptModalOpen}
+            closeTransactionModal={closeTransactionModal}
+            closeCreateReceiptModal={closeCreateReceiptModal}
+          >
+            {children}
+          </DashboardLayoutClient>
+        </TransactionsProvider>
+      </CreateReceiptModalContext.Provider>
     </TransactionModalContext.Provider>
   );
 }
@@ -52,12 +69,16 @@ function DashboardLayoutClient({
   children,
   selectedTransaction,
   isModalOpen,
-  closeModal,
+  isCreateReceiptModalOpen,
+  closeTransactionModal,
+  closeCreateReceiptModal,
 }: {
   children: React.ReactNode;
   selectedTransaction: TransactionItemProps | null;
   isModalOpen: boolean;
-  closeModal: () => void;
+  isCreateReceiptModalOpen: boolean;
+  closeTransactionModal: () => void;
+  closeCreateReceiptModal: () => void;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -111,7 +132,18 @@ function DashboardLayoutClient({
         <TransactionModal
           transaction={selectedTransaction}
           isOpen={isModalOpen}
-          onClose={closeModal}
+          onClose={closeTransactionModal}
+        />
+
+        {/* Create Receipt Modal */}
+        <CreateReceiptModal
+          isOpen={isCreateReceiptModalOpen}
+          onClose={closeCreateReceiptModal}
+          onSuccess={() => {
+            closeCreateReceiptModal();
+            // TODO: Implementar atualização assíncrona dos dados do dashboard
+            // Por enquanto, apenas fechar o modal
+          }}
         />
       </div>
     </SearchContext.Provider>

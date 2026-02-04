@@ -24,7 +24,8 @@ export interface ActionCardProps {
   description: string;
   icon: LucideIcon;
   color: "blue" | "emerald" | "purple";
-  href: string;
+  href?: string;
+  onClick?: () => void;
 }
 
 // Props para o componente StatCard

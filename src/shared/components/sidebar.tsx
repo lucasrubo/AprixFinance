@@ -38,7 +38,7 @@ const menuItems = [
   },
   {
     title: "Gastos Fixos",
-    icon: CreditCard,
+    icon: PieChart,
     href: "/dashboard/fixed-expenses",
   },
   {
@@ -110,7 +110,7 @@ export function Sidebar({ className }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+      <nav className="flex flex-col flex-1 px-4 py-6 gap-2 overflow-y-auto">
         {filteredMenuItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;

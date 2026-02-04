@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
+import { CurrencyInput } from "@/shared/components/ui/currency-input";
 import { Label } from "@/shared/components/ui/label";
 import { Button } from "@/shared/components/ui/button";
 import { Loader2, User, Phone, DollarSign } from "lucide-react";
@@ -128,17 +129,13 @@ export function SettingsForm() {
               <DollarSign className="h-4 w-4" />
               Salário Mensal
             </Label>
-            <Input
+            <CurrencyInput
               id="salario"
               name="salario"
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="5000.00"
               value={salario}
-              onChange={(e) => setSalario(e.target.value)}
+              onValueChange={setSalario}
+              placeholder="5000,00"
               disabled={isPending}
-              className="h-11"
             />
             <p className="text-xs text-muted-foreground">
               Informe seu salário mensal para melhor controle financeiro

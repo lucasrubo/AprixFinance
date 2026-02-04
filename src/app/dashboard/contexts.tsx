@@ -8,6 +8,11 @@ interface TransactionModalContextType {
   openTransactionModal: (transaction: TransactionItemProps) => void;
 }
 
+// Contexto para o modal de criação de receipt
+interface CreateReceiptModalContextType {
+  openCreateReceiptModal: () => void;
+}
+
 // Contexto para busca global
 interface SearchContextType {
   searchTerm: string;
@@ -23,6 +28,8 @@ interface TransactionsContextType {
 // Criação dos contextos
 export const TransactionModalContext =
   createContext<TransactionModalContextType | null>(null);
+export const CreateReceiptModalContext =
+  createContext<CreateReceiptModalContextType | null>(null);
 export const SearchContext = createContext<SearchContextType | null>(null);
 export const TransactionsContext =
   createContext<TransactionsContextType | null>(null);
@@ -33,6 +40,16 @@ export function useTransactionModal(): TransactionModalContextType {
   if (!context) {
     throw new Error(
       "useTransactionModal must be used within a TransactionModalProvider",
+    );
+  }
+  return context;
+}
+
+export function useCreateReceiptModal(): CreateReceiptModalContextType {
+  const context = useContext(CreateReceiptModalContext);
+  if (!context) {
+    throw new Error(
+      "useCreateReceiptModal must be used within a CreateReceiptModalProvider",
     );
   }
   return context;

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { LucideIcon } from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 import { StatCardProps } from "../types";
 
 export function StatCard({
@@ -13,6 +13,8 @@ export function StatCard({
   icon: Icon,
   colorClass,
 }: StatCardProps) {
+  const isTrendingIcon = Icon === TrendingUp || Icon === TrendingDown;
+
   return (
     <div className="p-6 rounded-2xl shadow-sm border transition-all duration-300 hover:shadow-md bg-card border-border">
       <div className="flex justify-between items-start mb-4">
@@ -34,7 +36,11 @@ export function StatCard({
       <h3 className="text-sm font-medium mb-1 text-muted-foreground">
         {title}
       </h3>
-      <p className="text-2xl font-bold mb-1 text-foreground">{value}</p>
+      <p
+        className={`text-2xl font-bold mb-1 text-foreground ${isTrendingIcon ? colorClass.replace("bg-", "text-") : ""}`}
+      >
+        {value}
+      </p>
       <p className="text-xs text-muted-foreground">{subtext}</p>
     </div>
   );

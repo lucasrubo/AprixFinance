@@ -11,6 +11,7 @@ import {
 } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
+import { CurrencyInput } from "@/shared/components/ui/currency-input";
 import { Label } from "@/shared/components/ui/label";
 import { Plus, Edit, Trash2, DollarSign, Calendar } from "lucide-react";
 import {
@@ -189,14 +190,13 @@ export default function ReceiptsPage() {
               </div>
               <div>
                 <Label htmlFor="valor">Valor</Label>
-                <Input
+                <CurrencyInput
                   id="valor"
-                  type="number"
-                  step="0.01"
                   value={formData.valor}
-                  onChange={(e) =>
-                    setFormData({ ...formData, valor: e.target.value })
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, valor: value })
                   }
+                  placeholder="0,00"
                   required
                 />
               </div>

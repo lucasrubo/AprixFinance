@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { X, DollarSign, Calendar, Tag, FileText } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
+import { CurrencyInput } from "@/shared/components/ui/currency-input";
 import { Label } from "@/shared/components/ui/label";
 import {
   Card,
@@ -123,19 +124,13 @@ export function FixedExpenseForm({
             {/* Valor */}
             <div className="space-y-2">
               <Label htmlFor="valor">Valor mensal (R$)*</Label>
-              <Input
+              <CurrencyInput
                 id="valor"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0,00"
-                value={formData.valor_parcela}
-                onChange={(e) =>
-                  updateFormData(
-                    "valor_parcela",
-                    parseFloat(e.target.value) || 0,
-                  )
+                value={formData.valor_parcela.toString()}
+                onValueChange={(value) =>
+                  updateFormData("valor_parcela", parseFloat(value) || 0)
                 }
+                placeholder="0,00"
                 required
               />
             </div>
