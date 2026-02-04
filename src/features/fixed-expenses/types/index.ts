@@ -1,4 +1,5 @@
 // Tipos para gastos fixos
+import { User } from "@/shared/types";
 
 export interface FixedExpense {
   id: string;
@@ -13,6 +14,7 @@ export interface FixedExpense {
   status: "ativo" | "cancelado" | "pausado";
   created_at: string;
   updated_at: string;
+  created_by?: User; // Usuário que criou o gasto fixo
 }
 
 export interface CreateFixedExpenseData {

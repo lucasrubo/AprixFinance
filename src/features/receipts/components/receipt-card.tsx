@@ -10,7 +10,7 @@ import {
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Receipt } from "@/shared/types";
-import { Calendar, Store, DollarSign, Edit, Trash2 } from "lucide-react";
+import { Calendar, Store, DollarSign, Edit, Trash2, User } from "lucide-react";
 
 interface ReceiptCardProps {
   receipt: Receipt;
@@ -96,6 +96,13 @@ export function ReceiptCard({ receipt, onEdit, onDelete }: ReceiptCardProps) {
 
         {receipt.descricao && (
           <p className="text-sm text-muted-foreground">{receipt.descricao}</p>
+        )}
+
+        {receipt.created_by && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <User className="h-3 w-3" />
+            <span>Criado por {receipt.created_by.nome}</span>
+          </div>
         )}
 
         <div className="flex gap-2 pt-2">

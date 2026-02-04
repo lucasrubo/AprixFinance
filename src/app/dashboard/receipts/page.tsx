@@ -50,7 +50,14 @@ export default function ReceiptsPage() {
     ]);
 
     if (receiptsResult.success) {
-      setReceipts(receiptsResult.data || []);
+      // Mapear os dados para incluir created_by
+      const mappedReceipts = (receiptsResult.data || []).map(
+        (receipt: any) => ({
+          ...receipt,
+          created_by: receipt.users,
+        }),
+      );
+      setReceipts(mappedReceipts);
     }
     if (groupsResult.success) {
       setGroups(groupsResult.groups || []);
@@ -298,6 +305,11 @@ export default function ReceiptsPage() {
                   <div className="text-sm">
                     <span className="font-medium">Grupo:</span>{" "}
                     {receipt.groups.nome}
+                  </div>
+                )}
+                {receipt.created_by && (
+                  <div className="text-sm text-muted-foreground">
+                    Criado por {receipt.created_by.nome}
                   </div>
                 )}
                 <div className="flex gap-2 pt-2">

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown, User } from "lucide-react";
 import { TransactionItemComponentProps } from "../types";
 
 export function TransactionItem({
@@ -11,6 +11,7 @@ export function TransactionItem({
   amount,
   type,
   description,
+  created_by,
   onClick,
 }: TransactionItemComponentProps) {
   return (
@@ -45,6 +46,12 @@ export function TransactionItem({
             <p className="text-xs text-muted-foreground mt-1 truncate max-w-xs">
               {description}
             </p>
+          )}
+          {created_by && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+              <User className="h-3 w-3" />
+              <span>Criado por {created_by}</span>
+            </div>
           )}
         </div>
       </div>

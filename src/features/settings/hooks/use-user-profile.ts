@@ -9,44 +9,46 @@ export function useUserProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchUserProfile() {
-      try {
-        const supabase = createClient();
+  const fetchUserProfile = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const {
-          data: { user: authUser },
-          error: authError,
-        } = await supabase.auth.getUser();
+      const supabase = createClient();
 
-        if (authError || !authUser) {
-          setError("Usuário não autenticado");
-          setLoading(false);
-          return;
-        }
+      const {
+        data: { user: authUser },
+        error: authError,
+      } = await supabase.auth.getUser();
 
-        const { data: userProfile, error: profileError } = await supabase
-          .from("users")
-          .select("*")
-          .eq("id", authUser.id)
-          .single();
-
-        if (profileError) {
-          setError("Erro ao carregar perfil");
-          console.error("Error fetching user profile:", profileError);
-        } else {
-          setUser(userProfile);
-        }
-      } catch (err) {
-        setError("Erro interno");
-        console.error("Unexpected error:", err);
-      } finally {
-        setLoading(false);
+      if (authError || !authUser) {
+        setError("Usuário não autenticado");
+        return;
       }
-    }
 
+      const { data: userProfile, error: profileError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", authUser.id)
+        .single();
+
+      if (profileError) {
+        setError("Erro ao carregar perfil");
+        console.error("Error fetching user profile:", profileError);
+      } else {
+        setUser(userProfile);
+      }
+    } catch (err) {
+      setError("Erro interno");
+      console.error("Unexpected error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUserProfile();
   }, []);
 
-  return { user, loading, error };
+  return { user, loading, error, refetch: fetchUserProfile };
 }

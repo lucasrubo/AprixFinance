@@ -9,6 +9,7 @@ import {
   Trash2,
   Edit,
   DollarSign,
+  User,
 } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -26,6 +27,14 @@ const formatDate = (dateString: string) => {
   // Assumir que a string está no formato YYYY-MM-DD e formatar diretamente
   const [year, month, day] = dateString.split("-");
   return `${day}/${month}/${year}`;
+};
+
+const formatFullDate = (date: Date) => {
+  return date.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 };
 
 const getCategoryLabel = (categoria: string) => {
@@ -118,6 +127,15 @@ export function FixedExpenseCard({
           <p className="text-sm text-muted-foreground">{expense.descricao}</p>
         )}
 
+        {expense.created_by && (
+          <div className="flex items-center gap-2">
+            <User className="h-4 w-4 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              Criado por {expense.created_by.nome}
+            </p>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-4">
           <div className="flex items-center gap-2">
             <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -164,7 +182,7 @@ export function FixedExpenseCard({
                 Próximo pagamento
               </p>
               <p className="text-xs text-blue-600 dark:text-blue-400">
-                {formatDate(nextPaymentDate.toISOString())}
+                {formatFullDate(nextPaymentDate)}
               </p>
             </div>
           </div>

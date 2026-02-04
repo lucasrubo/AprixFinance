@@ -30,6 +30,7 @@ Aplicação de finanças construída com Next.js, utilizando Arquitetura Vertica
 - Entradas e saídas com descrições detalhadas
 - Busca por título, grupo e descrição
 - Modal de detalhes completo
+- **Rastreamento do criador**: Cada receipt mostra qual usuário o criou
 
 #### 💳 **Gastos Fixos**
 
@@ -37,6 +38,7 @@ Aplicação de finanças construída com Next.js, utilizando Arquitetura Vertica
 - **Serviços** (seguro saúde, internet)
 - **Financiamentos** com duração definida
 - Controle de vencimentos e notificações
+- **Rastreamento do criador**: Cada gasto fixo mostra qual usuário o criou
 
 #### 🔔 **Sistema de Notificações**
 
@@ -52,12 +54,19 @@ Aplicação de finanças construída com Next.js, utilizando Arquitetura Vertica
 - Filtragem por título, grupo e descrição
 - Clique para abrir modal de detalhes
 
+#### ⚙️ **Configurações do Perfil**
+
+- Atualização de nome e telefone
+- **Campo de salário mensal** para melhor controle financeiro
+- Validação de dados e feedback visual
+
 ### Próximos Passos:
 
 1. **Configurar Supabase** (5 min)
-2. **Testar autenticação e CRUD**
-3. **Implementar API de IA e WhatsApp**
-4. **Adicionar gráficos e relatórios**
+2. **Executar script de migração** (`data/add-salary-column.sql`) se já tem banco criado
+3. **Testar autenticação e CRUD**
+4. **Implementar API de IA e WhatsApp**
+5. **Adicionar gráficos e relatórios**
 
 ---
 
@@ -152,6 +161,14 @@ Consulte `ARCHITECTURE.md` para detalhes completos sobre a arquitetura.
 
 ### Tabelas Principais:
 
+#### `users` - Usuários
+
+- `nome` - Nome completo do usuário
+- `email` - Email único do usuário
+- `telefone` - Telefone (opcional)
+- `tipo` - Tipo de usuário ('user' ou 'admin')
+- `salario` - Salário mensal (opcional, para controle financeiro)
+
 #### `receipts` - Receitas e Despesas
 
 - `titulo` - Nome da transação
@@ -161,6 +178,7 @@ Consulte `ARCHITECTURE.md` para detalhes completos sobre a arquitetura.
 - `data` - Data da transação
 - `user_id` - Usuário proprietário
 - `group_id` - Grupo (opcional)
+- `created_by` - Usuário que criou o receipt (através de JOIN)
 
 #### `fixed_expenses` - Gastos Fixos
 

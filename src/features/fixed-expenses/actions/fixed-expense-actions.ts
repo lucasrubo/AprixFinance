@@ -18,7 +18,15 @@ export async function getFixedExpensesAction() {
 
     const { data, error } = await supabase
       .from("fixed_expenses")
-      .select("*")
+      .select(
+        `
+        *,
+        users (
+          nome,
+          email
+        )
+      `,
+      )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -27,7 +35,13 @@ export async function getFixedExpensesAction() {
       return { error: "Erro ao buscar gastos fixos" };
     }
 
-    return { success: true, data };
+    // Mapear os dados para incluir created_by
+    const mappedData = data?.map((expense: any) => ({
+      ...expense,
+      created_by: expense.users,
+    }));
+
+    return { success: true, data: mappedData };
   } catch (error) {
     console.error("Erro ao buscar gastos fixos:", error);
     return { error: "Erro ao buscar gastos fixos" };

@@ -6,9 +6,16 @@ import { revalidatePath } from "next/cache";
 export async function updateUserProfileAction(formData: FormData) {
   const nome = formData.get("nome") as string;
   const telefone = formData.get("telefone") as string;
+  const salario = formData.get("salario")
+    ? parseFloat(formData.get("salario") as string)
+    : null;
 
   if (!nome || nome.trim().length === 0) {
     return { error: "Nome é obrigatório" };
+  }
+
+  if (salario !== null && (isNaN(salario) || salario < 0)) {
+    return { error: "Salário deve ser um valor positivo" };
   }
 
   const supabase = await createClient();
@@ -29,6 +36,7 @@ export async function updateUserProfileAction(formData: FormData) {
     .update({
       nome: nome.trim(),
       telefone: telefone?.trim() || null,
+      salario: salario,
     })
     .eq("id", user.id);
 

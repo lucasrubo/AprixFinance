@@ -45,7 +45,8 @@ export async function searchItemsAction(searchTerm: string): Promise<{
         tipo,
         data,
         group_id,
-        groups:group_id (nome)
+        groups:group_id (nome),
+        users:user_id (nome)
       `,
       )
       .eq("user_id", userId)
@@ -65,6 +66,7 @@ export async function searchItemsAction(searchTerm: string): Promise<{
           type: receipt.tipo === "entrada" ? "income" : "expense",
           description: receipt.descricao || "",
           itemType: "receipt",
+          created_by: receipt.users?.nome,
         });
       });
     }
@@ -72,7 +74,12 @@ export async function searchItemsAction(searchTerm: string): Promise<{
     // Buscar fixed_expenses
     const { data: fixedExpenses } = await supabase
       .from("fixed_expenses")
-      .select("*")
+      .select(
+        `
+        *,
+        users:user_id (nome)
+      `,
+      )
       .eq("user_id", userId)
       .eq("status", "ativo")
       .or(`titulo.ilike.%${searchTerm}%,descricao.ilike.%${searchTerm}%`)
@@ -93,6 +100,7 @@ export async function searchItemsAction(searchTerm: string): Promise<{
           itemType: "fixed_expense",
           category: expense.categoria,
           status: expense.status,
+          created_by: expense.users?.nome,
         });
       });
     }

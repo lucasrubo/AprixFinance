@@ -55,6 +55,7 @@ export default async function DashboardPage() {
     .select(
       `
       id,
+      user_id,
       titulo,
       valor,
       descricao,
@@ -94,9 +95,26 @@ export default async function DashboardPage() {
     }
   }
 
+  // Buscar nomes dos usuários separadamente se houver recibos
+  let receiptsWithUsers = receiptsWithGroups;
+  if (receiptsWithGroups && receiptsWithGroups.length > 0) {
+    const userIds = receiptsWithGroups.map((r) => r.user_id).filter((id) => id);
+    if (userIds.length > 0) {
+      const { data: users } = await supabase
+        .from("users")
+        .select("id, nome")
+        .in("id", userIds);
+
+      receiptsWithUsers = receiptsWithGroups.map((receipt) => ({
+        ...receipt,
+        users: users?.find((u) => u.id === receipt.user_id),
+      }));
+    }
+  }
+
   // Formatar os dados dos recibos recentes
   const formattedReceipts: TransactionItemProps[] =
-    receiptsWithGroups?.map((receipt: any) => ({
+    receiptsWithUsers?.map((receipt: any) => ({
       id: receipt.id,
       title: receipt.titulo,
       group: receipt.groups?.nome || "Sem grupo",
@@ -109,6 +127,7 @@ export default async function DashboardPage() {
       category: receipt.tipo === "entrada" ? "Receita" : "Despesa",
       status: "concluído",
       sortDate: receipt.data, // Usar string para ordenação (YYYY-MM-DD)
+      created_by: receipt.users?.nome,
     })) || [];
 
   // Formatar os dados dos gastos fixos como ocorrências
@@ -126,6 +145,7 @@ export default async function DashboardPage() {
       category: occurrence.categoria,
       status: "automático",
       sortDate: occurrence.occurrence_date, // Usar string para ordenação (YYYY-MM-DD)
+      created_by: occurrence.created_by,
     })) || [];
 
   // Combinar e ordenar todas as transações por data (mais recentes primeiro)

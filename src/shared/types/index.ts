@@ -5,6 +5,7 @@ export interface User {
   nome: string;
   telefone: string | null;
   tipo: "user" | "admin";
+  salario: number | null;
   created_at: string;
 }
 
@@ -33,6 +34,7 @@ export interface Receipt {
   data: string;
   tipo: "entrada" | "saida";
   created_at: string;
+  created_by?: User; // Usuário que criou o receipt
 }
 
 export interface MonthlyStats {

@@ -148,6 +148,7 @@ export function DashboardClient({
                   itemType={transaction.itemType || "receipt"}
                   category={transaction.category}
                   status={transaction.status}
+                  created_by={transaction.created_by}
                   onClick={() => handleTransactionClick(transaction)}
                 />
               ))

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -11,15 +11,34 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Button } from "@/shared/components/ui/button";
-import { Loader2, User, Phone } from "lucide-react";
+import { Loader2, User, Phone, DollarSign } from "lucide-react";
 import { updateUserProfileAction } from "../actions/settings-actions";
 import { useUserProfile } from "../hooks/use-user-profile";
 
 export function SettingsForm() {
-  const { user, loading: userLoading, error: userError } = useUserProfile();
+  const {
+    user,
+    loading: userLoading,
+    error: userError,
+    refetch,
+  } = useUserProfile();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  // Estado local para os valores dos campos
+  const [nome, setNome] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [salario, setSalario] = useState("");
+
+  // Atualizar estado local quando user carrega
+  useEffect(() => {
+    if (user) {
+      setNome(user.nome);
+      setTelefone(user.telefone || "");
+      setSalario(user.salario?.toString() || "");
+    }
+  }, [user]);
 
   async function handleSubmit(formData: FormData) {
     setError(null);
@@ -31,6 +50,8 @@ export function SettingsForm() {
         setError(result.error);
       } else {
         setSuccess(true);
+        // Recarregar dados do usuário após sucesso
+        await refetch();
       }
     });
   }
@@ -71,7 +92,8 @@ export function SettingsForm() {
               name="nome"
               type="text"
               placeholder="Digite seu nome completo"
-              defaultValue={user.nome}
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
               required
               disabled={isPending}
               className="h-11"
@@ -91,10 +113,36 @@ export function SettingsForm() {
               name="telefone"
               type="tel"
               placeholder="(11) 99999-9999"
-              defaultValue={user.telefone || ""}
+              value={telefone}
+              onChange={(e) => setTelefone(e.target.value)}
               disabled={isPending}
               className="h-11"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label
+              htmlFor="salario"
+              className="text-sm font-medium flex items-center gap-2"
+            >
+              <DollarSign className="h-4 w-4" />
+              Salário Mensal
+            </Label>
+            <Input
+              id="salario"
+              name="salario"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="5000.00"
+              value={salario}
+              onChange={(e) => setSalario(e.target.value)}
+              disabled={isPending}
+              className="h-11"
+            />
+            <p className="text-xs text-muted-foreground">
+              Informe seu salário mensal para melhor controle financeiro
+            </p>
           </div>
 
           <div className="space-y-2">

@@ -11,6 +11,7 @@ export interface FixedExpenseOccurrence {
   occurrence_date: string;
   status: string;
   descricao?: string;
+  created_by?: string;
 }
 
 // Gerar ocorrências de gastos fixos para um período específico

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { X, Calendar, Tag, TrendingUp, TrendingDown } from "lucide-react";
+import { X, Calendar, Tag, TrendingUp, TrendingDown, User } from "lucide-react";
 import { TransactionItemProps } from "@/features/dashboard/types";
 
 interface TransactionModalProps {
@@ -92,6 +92,15 @@ export function TransactionModal({
                 <p className="text-sm text-muted-foreground">
                   {transaction.description}
                 </p>
+              </div>
+            )}
+
+            {transaction.created_by && (
+              <div className="flex items-center gap-2 pt-2">
+                <User className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  Criado por {transaction.created_by}
+                </span>
               </div>
             )}
 

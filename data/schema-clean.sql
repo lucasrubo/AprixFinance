@@ -19,6 +19,7 @@ CREATE TABLE public.users (
     telefone TEXT,
     nome TEXT NOT NULL,
     tipo TEXT NOT NULL DEFAULT 'user' CHECK (tipo IN ('user', 'admin')),
+    salario DECIMAL(10,2), -- salário mensal
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

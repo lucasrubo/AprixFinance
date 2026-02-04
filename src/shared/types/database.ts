@@ -9,6 +9,7 @@ export interface Database {
           nome: string;
           telefone: string | null;
           tipo: "user" | "admin";
+          salario: number | null;
           created_at: string;
         };
         Insert: {
@@ -17,6 +18,7 @@ export interface Database {
           nome: string;
           telefone?: string | null;
           tipo?: "user" | "admin";
+          salario?: number | null;
           created_at?: string;
         };
         Update: {
@@ -25,6 +27,7 @@ export interface Database {
           nome?: string;
           telefone?: string | null;
           tipo?: "user" | "admin";
+          salario?: number | null;
           created_at?: string;
         };
       };
