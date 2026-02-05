@@ -54,6 +54,13 @@ Aplicação de finanças construída com Next.js, utilizando Arquitetura Vertica
 - Filtragem por título, grupo e descrição
 - Clique para abrir modal de detalhes
 
+#### 🤖 **WhatsApp Bot com IA**
+
+- **Agente de Entrada**: IA extrai dados de mensagens de texto
+- **Processamento de Recibos**: OCR em imagens de recibos via IA Vision
+- **Confirmação Automática**: Pede confirmação antes de salvar
+- **Integração Completa**: Insere diretamente na tabela receipts
+
 #### ⚙️ **Configurações do Perfil**
 
 - Atualização de nome e telefone
@@ -65,7 +72,7 @@ Aplicação de finanças construída com Next.js, utilizando Arquitetura Vertica
 1. **Configurar Supabase** (5 min)
 2. **Executar script de migração** (`data/add-salary-column.sql`) se já tem banco criado
 3. **Testar autenticação e CRUD**
-4. **Implementar API de IA e WhatsApp**
+4. ✅ **API de IA e WhatsApp** - Implementada!
 5. **Adicionar gráficos e relatórios**
 
 ---
@@ -102,6 +109,25 @@ npm run dev
 
 # Abrir http://localhost:3000
 ```
+
+### 4. Configurar WhatsApp Bot (Opcional)
+
+Para usar o bot do WhatsApp com IA:
+
+1. **Configurar BigModel API**:
+   - Acesse [bigmodel.cn](https://bigmodel.cn/)
+   - Obtenha sua API Key
+   - Configure no `.env` do backend
+
+2. **Executar o Bot**:
+   ```bash
+   cd ../AprixFinanceApi
+   npm install
+   npm run dev
+   ```
+
+   - Escaneie o QR Code com WhatsApp
+   - Envie mensagens como "Gastei 50 reais no almoço"
 
 - **Next.js 14** - Framework React com App Router
 - **TypeScript** - Tipagem estática
