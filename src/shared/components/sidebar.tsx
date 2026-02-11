@@ -34,6 +34,7 @@ import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { Badge } from "@/shared/components/ui/badge";
 import { signOutAction } from "@/features/auth/actions/auth-actions";
 import { useUserRole } from "@/shared/hooks/use-user-role";
+import { useUserProfile } from "@/features/settings/hooks/use-user-profile";
 
 type NavItem = {
   title: string;
@@ -98,6 +99,7 @@ const quickLinks: NavItem[] = [
 export function Sidebar() {
   const pathname = usePathname();
   const { isAdmin } = useUserRole();
+  const { user, loading: userLoading } = useUserProfile();
   const [isPending, startTransition] = useTransition();
 
   const handleSignOut = () => {
@@ -114,8 +116,7 @@ export function Sidebar() {
           {items
             .filter((item) => (item.adminOnly ? isAdmin : true))
             .map((item) => {
-              const isActive =
-                pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const isActive = pathname === item.href;
               return (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
@@ -174,15 +175,30 @@ export function Sidebar() {
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
                   <AvatarFallback className="bg-sidebar-primary/10 text-sidebar-primary">
-                    FA
+                    {userLoading
+                      ? "?"
+                      : user?.nome
+                        ? user.nome
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .toUpperCase()
+                            .slice(0, 2)
+                        : user?.email?.[0]?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col text-left">
                   <span className="text-sm font-semibold text-sidebar-foreground">
-                    Conta Finance AI
+                    {userLoading
+                      ? "Carregando..."
+                      : user?.nome || user?.email?.split("@")[0] || "Usuário"}
                   </span>
                   <span className="text-xs text-sidebar-foreground/70">
-                    Plano Premium
+                    {userLoading
+                      ? "Carregando..."
+                      : user?.tipo === "admin"
+                        ? "Administrador"
+                        : "Usuário"}
                   </span>
                 </div>
               </div>

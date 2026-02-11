@@ -22,6 +22,7 @@ import { StatCard } from "@/features/dashboard/components/stat-card";
 import { ActionCard } from "@/features/dashboard/components/action-card";
 import { TransactionItem } from "@/features/dashboard/components/transaction-item";
 import { AIAssistantCard } from "@/features/dashboard/components/ai-assistant-card";
+import { FinancialChart } from "@/features/dashboard/components/financial-chart";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 
 interface DashboardClientProps {
@@ -136,6 +137,8 @@ export function DashboardClient({
           href="/dashboard/groups"
         />
       </div>
+
+      <FinancialChart />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <div className="xl:col-span-2 rounded-3xl border border-border/70 bg-card/95 shadow-lg shadow-black/5">

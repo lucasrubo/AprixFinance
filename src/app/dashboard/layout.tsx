@@ -112,6 +112,11 @@ function DashboardLayoutClient({
           onSuccess={() => {
             closeCreateReceiptModal();
           }}
+          trigger={
+            <button style={{ display: "none" }} id="create-receipt-trigger">
+              Trigger
+            </button>
+          }
         />
       </SidebarProvider>
     </SearchContext.Provider>

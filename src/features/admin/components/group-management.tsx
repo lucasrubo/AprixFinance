@@ -8,11 +8,11 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
-import { Input } from "@/shared/components/ui/input";
-import { Label } from "@/shared/components/ui/label";
 import { Badge } from "@/shared/components/ui/badge";
+import { Label } from "@/shared/components/ui/label";
 import { Plus, Users, Settings, UserPlus, Trash2 } from "lucide-react";
 import { Group, User, GroupMember } from "@/shared/types";
+import { CreateGroupModal } from "@/shared/components/create-group-modal";
 
 interface GroupManagementProps {
   groups?: (Group & { members: GroupMember[] })[];
@@ -31,21 +31,9 @@ export function GroupManagement({
   onAddUserToGroup,
   onRemoveUserFromGroup,
 }: GroupManagementProps) {
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAddUserForm, setShowAddUserForm] = useState<string | null>(null);
-  const [newGroup, setNewGroup] = useState({
-    name: "",
-    description: "",
-  });
   const [selectedUser, setSelectedUser] = useState("");
-
-  const handleCreateGroup = async () => {
-    if (!newGroup.name || !onCreateGroup) return;
-
-    await onCreateGroup(newGroup.name, newGroup.description || undefined);
-    setNewGroup({ name: "", description: "" });
-    setShowCreateForm(false);
-  };
 
   const handleAddUser = async (groupId: string) => {
     if (!selectedUser || !onAddUserToGroup) return;
@@ -66,63 +54,21 @@ export function GroupManagement({
           </Badge>
         </div>
 
-        <Button
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          className="bg-primary hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Grupo
-        </Button>
+        <CreateGroupModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={() => {
+            // Refresh groups list
+            window.location.reload();
+          }}
+          trigger={
+            <Button className="bg-primary hover:bg-primary/90">
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Grupo
+            </Button>
+          }
+        />
       </div>
-
-      {showCreateForm && (
-        <Card className=" ">
-          <CardHeader>
-            <CardTitle>Criar Novo Grupo</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="name">Nome do Grupo *</Label>
-              <Input
-                id="name"
-                value={newGroup.name}
-                onChange={(e) =>
-                  setNewGroup({ ...newGroup, name: e.target.value })
-                }
-                placeholder="Ex: Finanças da Família"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="description">Descrição</Label>
-              <Input
-                id="description"
-                value={newGroup.description}
-                onChange={(e) =>
-                  setNewGroup({ ...newGroup, description: e.target.value })
-                }
-                placeholder="Descrição opcional do grupo"
-              />
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <Button
-                onClick={handleCreateGroup}
-                disabled={!newGroup.name}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                Criar Grupo
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setShowCreateForm(false)}
-              >
-                Cancelar
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <div className="grid gap-6">
         {isLoading ? (
@@ -164,7 +110,7 @@ export function GroupManagement({
                 Crie seu primeiro grupo para começar a organizar as finanças
               </p>
               <Button
-                onClick={() => setShowCreateForm(true)}
+                onClick={() => setShowCreateModal(true)}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 <Plus className="h-4 w-4 mr-2" />

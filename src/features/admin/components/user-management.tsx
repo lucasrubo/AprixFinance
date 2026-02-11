@@ -8,11 +8,10 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
-import { Input } from "@/shared/components/ui/input";
-import { Label } from "@/shared/components/ui/label";
 import { Badge } from "@/shared/components/ui/badge";
 import { Plus, Users, Trash2 } from "lucide-react";
 import { User } from "@/shared/types";
+import { CreateUserModal } from "@/shared/components/create-user-modal";
 
 interface UserManagementProps {
   users?: User[];
@@ -27,30 +26,7 @@ export function UserManagement({
   onCreateUser,
   onDeleteUser,
 }: UserManagementProps) {
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newUser, setNewUser] = useState({
-    email: "",
-    nome: "",
-    password: "user123",
-  });
-  const [isCreating, setIsCreating] = useState(false);
-
-  const handleCreateUser = async () => {
-    if (!newUser.email || !onCreateUser) return;
-
-    setIsCreating(true);
-    try {
-      await onCreateUser(
-        newUser.email,
-        newUser.nome || undefined,
-        newUser.password,
-      );
-      setNewUser({ email: "", nome: "", password: "user123" });
-      setShowCreateForm(false);
-    } finally {
-      setIsCreating(false);
-    }
-  };
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const handleDeleteUser = (userId: string) => {
     if (
@@ -71,76 +47,21 @@ export function UserManagement({
           </Badge>
         </div>
 
-        <Button
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Usuário
-        </Button>
+        <CreateUserModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={() => {
+            // Refresh users list
+            window.location.reload();
+          }}
+          trigger={
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Usuário
+            </Button>
+          }
+        />
       </div>
-
-      {showCreateForm && (
-        <Card className=" ">
-          <CardHeader>
-            <CardTitle>Criar Novo Usuário</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={newUser.email}
-                onChange={(e) =>
-                  setNewUser({ ...newUser, email: e.target.value })
-                }
-                placeholder="usuario@exemplo.com"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="nome">Nome</Label>
-              <Input
-                id="nome"
-                value={newUser.nome}
-                onChange={(e) =>
-                  setNewUser({ ...newUser, nome: e.target.value })
-                }
-                placeholder="Nome completo (opcional)"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="password">Senha Padrão</Label>
-              <Input
-                id="password"
-                value={newUser.password}
-                onChange={(e) =>
-                  setNewUser({ ...newUser, password: e.target.value })
-                }
-                placeholder="Senha inicial"
-              />
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <Button
-                onClick={handleCreateUser}
-                disabled={!newUser.email || isCreating}
-                className="bg-green-600 hover:bg-green-700 text-primary-foreground"
-              >
-                {isCreating ? "Criando..." : "Criar Usuário"}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setShowCreateForm(false)}
-              >
-                Cancelar
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <Card className=" ">
         <CardHeader>

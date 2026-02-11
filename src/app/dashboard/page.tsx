@@ -25,7 +25,22 @@ export default async function DashboardPage() {
 
   // Buscar dados do usuário
   const { data: userData } = await supabase.auth.getUser();
-  const userProfile = userData.user?.user_metadata || {};
+  const userId = userData.user?.id;
+
+  let userProfile = { nome: "Usuário" };
+  if (userId) {
+    const { data: profileData } = await supabase
+      .from("users")
+      .select("nome, email")
+      .eq("id", userId)
+      .single();
+
+    if (profileData) {
+      userProfile = {
+        nome: profileData.nome || profileData.email || "Usuário",
+      };
+    }
+  }
 
   // Buscar estatísticas mensais incluindo gastos fixos
   const statsResult = await getMonthlyStatsWithFixedExpenses();
