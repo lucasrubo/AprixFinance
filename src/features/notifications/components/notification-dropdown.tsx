@@ -1,7 +1,15 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Bell, X, Check, CheckCheck, Trash2, Clock } from "lucide-react";
+import {
+  Bell,
+  X,
+  Check,
+  CheckCheck,
+  Trash2,
+  Clock,
+  Loader2,
+} from "lucide-react";
 import { Notification } from "@/shared/types";
 import { useNotifications } from "../hooks/use-notifications";
 
@@ -140,8 +148,7 @@ export function NotificationDropdown({
           <div className="max-h-80 overflow-y-auto">
             {isLoading ? (
               <div className="p-8 text-center">
-                <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                <p className="text-sm text-muted-foreground">Carregando...</p>
+                <Loader2 className="w-6 h-6 animate-spin mx-auto" />
               </div>
             ) : notifications.length === 0 ? (
               <div className="p-8 text-center">

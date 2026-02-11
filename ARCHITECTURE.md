@@ -88,6 +88,36 @@ O diretório `shared` contém código que é usado por múltiplas features ou pe
 - Código que é usado apenas por uma feature
 - Lógica de negócio específica
 
+## Assistente Finance AI (Chat)
+
+- `/dashboard/agent` é um **Server Component** que valida a sessão do Supabase (`src/app/dashboard/agent/page.tsx`) e injeta o nome do usuário no painel.
+- A experiência de chat vive em `src/features/agent/components/agent-chat-panel.tsx`, utilizando `Textarea`, `ScrollArea`, `Badge` e `Button` do shadcn para replicar o layout “sidebar inset”.
+- O cliente de dados (`src/features/agent/lib/chat-client.ts`) busca o token da sessão com `createClient()` (browser) e envia um POST para `${process.env.NEXT_PUBLIC_FINANCE_API_URL}/api/chat` com cabeçalho `Authorization: Bearer <token>`.
+- O backend independente (`AprixFinanceApi`) orquestra Cohere + Supabase e retorna `response`, `result`, `insights` e `suggestions`, usados para preencher mensagens, cards laterais e chips clicáveis.
+- `NEXT_PUBLIC_FINANCE_API_URL` deve apontar para onde o projeto `AprixFinanceApi` está rodando (ex.: `http://localhost:4000`). Sem esse valor o chat não consegue realizar chamadas autenticadas.
+- O cartão `AIAssistantCard` dentro do dashboard redireciona para `/dashboard/agent`, mantendo a mesma linguagem visual da nova sidebar.
+
+```mermaid
+flowchart LR
+  subgraph Frontend
+    ChatUI[AgentChatPanel]
+    SupaClient[Supabase Browser Client]
+  end
+
+  subgraph Backend
+    FinanceApi[AprixFinanceApi /api/chat]
+    SupabaseDB[Supabase]
+    Cohere[Cohere Command R+]
+  end
+
+  ChatUI -->|mensagem| SupaClient
+  SupaClient -->|token JWT| ChatUI
+  ChatUI -->|Bearer token + payload| FinanceApi
+  FinanceApi --> SupabaseDB
+  FinanceApi --> Cohere
+  FinanceApi -->|resposta + insights| ChatUI
+```
+
 ## Server Actions
 
 ### Definição

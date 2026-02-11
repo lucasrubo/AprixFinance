@@ -1,36 +1,35 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Search,
-  Menu,
   Moon,
+  Search,
   Sun,
   TrendingDown,
   TrendingUp,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { TransactionItemProps } from "@/features/dashboard/types";
 import { searchItemsAction } from "@/features/search/actions/search-actions";
 import { NotificationDropdown } from "@/features/notifications/components/notification-dropdown";
+import { SidebarTrigger } from "@/shared/components/ui/sidebar";
 
 interface HeaderProps {
-  sidebarOpen: boolean;
-  setSidebarOpen: (open: boolean) => void;
   onTransactionSelect: (transaction: TransactionItemProps) => void;
 }
 
-export function Header({
-  sidebarOpen,
-  setSidebarOpen,
-  onTransactionSelect,
-}: HeaderProps) {
+export function Header({ onTransactionSelect }: HeaderProps) {
+  const router = useRouter();
   const [isDark, setIsDark] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<TransactionItemProps[]>(
     [],
   );
   const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
   const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] =
     useState(false);
 
@@ -45,17 +44,22 @@ export function Header({
   }, []);
 
   const toggleTheme = () => {
-    const newDark = !isDark;
-    setIsDark(newDark);
-    document.documentElement.classList.toggle("dark", newDark);
-    localStorage.setItem("theme", newDark ? "dark" : "light");
+    const nextValue = !isDark;
+    setIsDark(nextValue);
+    document.documentElement.classList.toggle("dark", nextValue);
+    localStorage.setItem("theme", nextValue ? "dark" : "light");
   };
 
-  // Função de busca assíncrona
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    router.refresh();
+    setTimeout(() => setIsRefreshing(false), 1500);
+  };
+
   const performSearch = async (term: string) => {
-    if (term.length < 2) {
+    if (term.trim().length < 2) {
       setSearchResults([]);
-      setIsSearchDropdownOpen(false);
+      setShowDropdown(false);
       return;
     }
 
@@ -64,71 +68,72 @@ export function Header({
       const result = await searchItemsAction(term);
       if (result.success && result.data) {
         setSearchResults(result.data);
-        setIsSearchDropdownOpen(true);
+        setShowDropdown(true);
       } else {
         setSearchResults([]);
-        setIsSearchDropdownOpen(false);
+        setShowDropdown(false);
       }
     } catch (error) {
       console.error("Erro na busca:", error);
       setSearchResults([]);
-      setIsSearchDropdownOpen(false);
+      setShowDropdown(false);
     } finally {
       setIsSearching(false);
     }
   };
 
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
+  useEffect(() => {
+    if (!searchTerm) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
 
-    // Debounce da busca
     const timeoutId = setTimeout(() => {
-      performSearch(value);
+      void performSearch(searchTerm);
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  };
+  }, [searchTerm]);
 
   const handleTransactionSelect = (transaction: TransactionItemProps) => {
     onTransactionSelect(transaction);
-    setIsSearchDropdownOpen(false);
     setSearchTerm("");
     setSearchResults([]);
+    setShowDropdown(false);
   };
 
+  const shouldShowEmptyState =
+    showDropdown && searchTerm && !isSearching && searchResults.length === 0;
+
   return (
-    <header className="h-20 px-8 flex items-center justify-between sticky top-0 z-10 border-b border-border bg-[hsl(var(--sidebar))]/60 backdrop-blur-md transition-colors">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="p-2 lg:hidden rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-        >
-          <Menu size={20} />
-        </button>
-        <div className="relative hidden md:block group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors text-muted-foreground group-focus-within:text-accent-foreground" />
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:h-20 lg:px-8 lg:rounded-t-xl">
+      <div className="flex flex-1 items-center gap-3">
+        <SidebarTrigger className="lg:-ml-4" />
+        <div className="relative hidden flex-1 items-center md:flex">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             placeholder="Buscar transações, grupos..."
             value={searchTerm}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            onFocus={() => searchTerm && setIsSearchDropdownOpen(true)}
-            onBlur={() => setTimeout(() => setIsSearchDropdownOpen(false), 200)}
-            className="pl-10 pr-4 py-2.5 border-none rounded-xl text-sm w-80 transition-all outline-none bg-muted focus:ring-2 focus:ring-ring text-foreground placeholder:text-muted-foreground"
+            onChange={(event) => setSearchTerm(event.target.value)}
+            onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
+            onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
+            className="h-11 w-full rounded-xl border border-border bg-muted/60 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring"
           />
 
-          {/* Lista de resultados de busca */}
-          {isSearchDropdownOpen && searchResults.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-lg max-h-80 overflow-y-auto z-50">
-              {searchResults.map((transaction, index) => (
-                <div
+          {showDropdown && searchResults.length > 0 && (
+            <div className="absolute top-full left-0 right-0 z-50 mt-2 max-h-80 overflow-y-auto rounded-xl border border-border bg-card shadow-lg">
+              {searchResults.map((transaction) => (
+                <button
                   key={`${transaction.itemType}-${transaction.id}`}
+                  type="button"
                   onClick={() => handleTransactionSelect(transaction)}
-                  className="flex items-center justify-between p-4 hover:bg-accent cursor-pointer border-b border-border last:border-b-0"
+                  className="flex w-full items-center justify-between border-b border-border px-4 py-3 text-left last:border-b-0 hover:bg-accent"
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      className={`flex h-8 w-8 items-center justify-center rounded-full ${
                         transaction.type === "expense"
                           ? "bg-rose-100 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400"
                           : "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
@@ -142,10 +147,10 @@ export function Header({
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h4 className="font-semibold text-foreground text-sm">
+                        <span className="text-sm font-semibold text-foreground">
                           {transaction.title}
-                        </h4>
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                        </span>
+                        <span className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
                           {transaction.itemType === "receipt"
                             ? "Recibo"
                             : "Gasto Fixo"}
@@ -155,23 +160,14 @@ export function Header({
                         {transaction.group} • {transaction.date}
                       </p>
                       {transaction.description && (
-                        <p className="text-xs text-muted-foreground mt-1 truncate max-w-xs">
+                        <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
                           {transaction.description}
-                        </p>
-                      )}
-                      {transaction.category && (
-                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                          {transaction.category === "assinatura"
-                            ? "Assinatura"
-                            : transaction.category === "servico"
-                              ? "Serviço"
-                              : "Gasto Fixo"}
                         </p>
                       )}
                     </div>
                   </div>
                   <span
-                    className={`font-bold text-sm whitespace-nowrap ${
+                    className={`text-sm font-semibold ${
                       transaction.type === "expense"
                         ? "text-rose-600 dark:text-rose-400"
                         : "text-emerald-600 dark:text-emerald-400"
@@ -180,45 +176,50 @@ export function Header({
                     {transaction.type === "expense" ? "-" : "+"}
                     {transaction.amount}
                   </span>
-                </div>
+                </button>
               ))}
             </div>
           )}
 
-          {/* Indicador de carregamento */}
           {isSearching && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-lg p-4 z-50">
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-sm text-muted-foreground">Buscando...</p>
+            <div className="absolute top-full left-0 right-0 z-50 mt-2 rounded-xl border border-border bg-card p-4 shadow-lg">
+              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                <div className="h-4 w-4 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
+                Buscando...
               </div>
             </div>
           )}
 
-          {/* Mensagem quando não há resultados */}
-          {isSearchDropdownOpen &&
-            searchTerm &&
-            !isSearching &&
-            searchResults.length === 0 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-lg p-4 z-50">
-                <p className="text-sm text-muted-foreground text-center">
-                  Nenhum resultado encontrado para &quot;{searchTerm}&quot;
-                </p>
-              </div>
-            )}
-        </div>
+          {shouldShowEmptyState && (
+            <div className="absolute top-full left-0 right-0 z-50 mt-2 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground shadow-lg">
+              Nenhum resultado encontrado para “{searchTerm}”
+            </div>
+          )}
+        </div>{" "}
       </div>
 
-      <div className="flex items-center gap-4">
-        {/* Theme Toggle Desktop */}
+      <div className="ml-auto flex items-center gap-3">
         <button
+          type="button"
           onClick={toggleTheme}
-          className="hidden lg:flex p-2.5 rounded-xl transition-colors text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition-colors hover:border-border hover:text-foreground"
           title={isDark ? "Mudar para modo claro" : "Mudar para modo escuro"}
         >
-          {isDark ? <Sun size={20} /> : <Moon size={20} />}
+          {isDark ? <Sun size={18} /> : <Moon size={18} />}
         </button>
-
+        <button
+          type="button"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition-colors hover:border-border hover:text-foreground disabled:opacity-50"
+          title="Atualizar página"
+        >
+          {isRefreshing ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <RefreshCw size={18} />
+          )}
+        </button>
         <NotificationDropdown
           isOpen={isNotificationDropdownOpen}
           onToggle={() =>
@@ -226,16 +227,6 @@ export function Header({
           }
           onClose={() => setIsNotificationDropdownOpen(false)}
         />
-        <div className="h-8 w-[1px] mx-1 hidden sm:block bg-border"></div>
-        <div className="flex items-center gap-3 pl-2">
-          <div className="text-right hidden sm:block">
-            <p className="text-sm font-semibold text-foreground">Lucas Rubo</p>
-            <p className="text-xs text-muted-foreground">Premium Plan</p>
-          </div>
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-blue-500/20">
-            LU
-          </div>
-        </div>
       </div>
     </header>
   );

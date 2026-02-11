@@ -96,6 +96,7 @@ cp .env.example .env.local
 # Configure suas chaves no .env.local
 NEXT_PUBLIC_SUPABASE_URL=sua_url_do_supabase
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_chave_publica
+NEXT_PUBLIC_FINANCE_API_URL=http://localhost:4000
 ```
 
 ### 3. Executar o projeto
@@ -110,7 +111,21 @@ npm run dev
 # Abrir http://localhost:3000
 ```
 
-### 4. Configurar WhatsApp Bot (Opcional)
+### 4. Conectar o Assistente de IA
+
+O chat inteligente consome o backend `AprixFinanceApi`. Rode-o em paralelo e aponte a URL via `NEXT_PUBLIC_FINANCE_API_URL`.
+
+```bash
+cd ../AprixFinanceApi
+cp .env.example .env.local
+npm install
+# Execute em uma porta livre (ex: 4000)
+PORT=4000 npm run dev
+```
+
+Com a API rodando, abra o dashboard em `/dashboard/agent` e converse com a IA — o token do Supabase é enviado automaticamente.
+
+### 5. Configurar WhatsApp Bot (Opcional)
 
 Para usar o bot do WhatsApp com IA:
 

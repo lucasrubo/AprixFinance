@@ -3,6 +3,7 @@
 import React from "react";
 import { TrendingUp, TrendingDown, User } from "lucide-react";
 import { TransactionItemComponentProps } from "../types";
+import { Badge } from "@/shared/components/ui/badge";
 
 export function TransactionItem({
   title,
@@ -14,61 +15,58 @@ export function TransactionItem({
   created_by,
   onClick,
 }: TransactionItemComponentProps) {
+  const isExpense = type === "expense";
+
   return (
-    <div
-      className="flex items-center justify-between p-4 rounded-xl transition-colors cursor-pointer group hover:bg-accent"
+    <button
+      type="button"
       onClick={onClick}
+      className="group flex w-full items-center justify-between rounded-2xl border border-transparent bg-transparent p-4 text-left transition-colors hover:border-border hover:bg-muted/30"
     >
       <div className="flex items-center gap-4">
         <div
-          className={`w-10 h-10 rounded-full flex items-center justify-center ${
-            type === "expense"
-              ? "bg-rose-100 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400"
-              : "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
+          className={`flex h-11 w-11 items-center justify-center rounded-2xl text-sm font-semibold ${
+            isExpense
+              ? "bg-rose-500/10 text-rose-500"
+              : "bg-emerald-500/10 text-emerald-500"
           }`}
         >
-          {type === "expense" ? (
-            <TrendingDown size={18} />
-          ) : (
-            <TrendingUp size={18} />
-          )}
+          {isExpense ? <TrendingDown size={18} /> : <TrendingUp size={18} />}
         </div>
-        <div>
-          <h4 className="font-semibold text-foreground">{title}</h4>
-          <div className="flex items-center gap-2 text-xs mt-0.5 text-muted-foreground">
-            <span className="px-1.5 py-0.5 rounded font-medium bg-muted text-muted-foreground">
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h4 className="font-semibold text-foreground">{title}</h4>
+            <Badge variant="secondary" className="rounded-full text-[11px]">
               {group}
-            </span>
-            <span>•</span>
-            <span>{date}</span>
+            </Badge>
           </div>
+          <p className="text-xs text-muted-foreground">{date}</p>
           {description && (
-            <p className="text-xs text-muted-foreground mt-1 truncate max-w-xs">
+            <p className="text-xs text-muted-foreground/80 line-clamp-1">
               {description}
             </p>
           )}
           {created_by && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <User className="h-3 w-3" />
-              <span>Criado por {created_by}</span>
+              <span>{created_by}</span>
             </div>
           )}
         </div>
       </div>
       <div className="text-right">
         <p
-          className={`font-bold ${
-            type === "expense"
-              ? "text-rose-600 dark:text-rose-400"
-              : "text-emerald-600 dark:text-emerald-400"
+          className={`text-sm font-semibold ${
+            isExpense ? "text-rose-500" : "text-emerald-500"
           }`}
         >
-          {type === "expense" ? "-" : "+"} {amount}
+          {isExpense ? "-" : "+"}
+          {amount}
         </p>
-        <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground">
+        <span className="text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
           Ver detalhes
         </span>
       </div>
-    </div>
+    </button>
   );
 }

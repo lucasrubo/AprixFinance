@@ -2,34 +2,58 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTransition } from "react";
-import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/components/ui/button";
+import { useTransition, type ComponentType } from "react";
 import {
   LayoutDashboard,
-  Users,
+  Sparkles,
   Receipt,
-  Group,
-  FileText,
   PieChart,
+  Group,
+  Users,
   Settings,
   LogOut,
+  Bookmark,
   CreditCard,
-  Sparkles,
 } from "lucide-react";
+import {
+  Sidebar as SidebarRoot,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuBadge,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+  SidebarSeparator,
+} from "@/shared/components/ui/sidebar";
+import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
+import { Badge } from "@/shared/components/ui/badge";
 import { signOutAction } from "@/features/auth/actions/auth-actions";
 import { useUserRole } from "@/shared/hooks/use-user-role";
 
-const menuItems = [
+type NavItem = {
+  title: string;
+  href: string;
+  icon: ComponentType<{ className?: string }>;
+  badge?: string;
+  adminOnly?: boolean;
+};
+
+const overviewNav: NavItem[] = [
   {
     title: "Dashboard",
     icon: LayoutDashboard,
     href: "/dashboard",
   },
   {
-    title: "Agente",
+    title: "Agente IA",
     icon: Sparkles,
     href: "/dashboard/agent",
+    badge: "novo",
   },
   {
     title: "Recibos",
@@ -41,6 +65,9 @@ const menuItems = [
     icon: PieChart,
     href: "/dashboard/fixed-expenses",
   },
+];
+
+const adminNav: NavItem[] = [
   {
     title: "Grupos",
     icon: Group,
@@ -60,14 +87,18 @@ const menuItems = [
   },
 ];
 
-interface SidebarProps {
-  className?: string;
-}
+const quickLinks: NavItem[] = [
+  {
+    title: "Novo recibo",
+    icon: CreditCard,
+    href: "/dashboard/receipts?create=true",
+  },
+];
 
-export function Sidebar({ className }: SidebarProps) {
+export function Sidebar() {
   const pathname = usePathname();
-  const [isPending, startTransition] = useTransition();
   const { isAdmin } = useUserRole();
+  const [isPending, startTransition] = useTransition();
 
   const handleSignOut = () => {
     startTransition(async () => {
@@ -75,84 +106,107 @@ export function Sidebar({ className }: SidebarProps) {
     });
   };
 
-  // Filter menu items based on user role
-  const filteredMenuItems = menuItems.filter((item) => {
-    // Hide admin-only items for regular users
-    if (item.adminOnly && !isAdmin) {
-      return false;
-    }
-    return true;
-  });
+  const renderNavGroup = (label: string, items: NavItem[]) => (
+    <SidebarGroup>
+      <SidebarGroupLabel>{label}</SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {items
+            .filter((item) => (item.adminOnly ? isAdmin : true))
+            .map((item) => {
+              const isActive =
+                pathname === item.href || pathname.startsWith(`${item.href}/`);
+              return (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive}
+                    tooltip={item.title}
+                  >
+                    <Link href={item.href}>
+                      <item.icon className="text-muted-foreground" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                  {item.badge ? (
+                    <SidebarMenuBadge className="bg-sidebar-primary/10 text-[10px] font-semibold uppercase tracking-wide text-sidebar-primary">
+                      {item.badge}
+                    </SidebarMenuBadge>
+                  ) : null}
+                </SidebarMenuItem>
+              );
+            })}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
 
   return (
-    <aside
-      className={cn(
-        `
-        w-72 border-r shadow-xl
-        flex flex-col h-full
-        bg-[hsl(var(--sidebar))] border-sidebar-border
-      `,
-        className,
-      )}
-    >
-      {/* Logo Area */}
-      <div className="p-8 pb-4">
-        <div className="flex items-center gap-3 mb-1">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-foreground">
-              Finance AI
-            </h1>
-            <p className="text-xs font-medium text-muted-foreground">
+    <SidebarRoot variant="inset" className="bg-background">
+      <SidebarHeader>
+        <div className="flex items-center gap-3 rounded-xl border border-sidebar-border bg-sidebar-accent/60 px-3 py-2">
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold text-sidebar-foreground">
+              Finance
+            </span>
+            <span className="text-xs text-sidebar-foreground/70">
               Gestão Inteligente
-            </p>
+            </span>
           </div>
+          <Badge
+            variant="secondary"
+            className="ml-auto text-[11px] uppercase tracking-wide"
+          >
+            Nova Era
+          </Badge>
         </div>
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex flex-col flex-1 px-4 py-6 gap-2 overflow-y-auto">
-        {filteredMenuItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href;
-
-          return (
-            <Link key={item.href} href={item.href}>
-              <Button
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start gap-3 h-12 text-sm font-medium transition-all duration-200",
-                  isActive
-                    ? "bg-accent text-accent-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                )}
+      </SidebarHeader>
+      <SidebarSeparator />
+      <SidebarContent>
+        {renderNavGroup("Visão geral", overviewNav)}
+        {renderNavGroup("Atalhos", quickLinks)}
+        {isAdmin && renderNavGroup("Administração", adminNav)}
+      </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton className="h-auto py-3" tooltip="Perfil" asChild>
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback className="bg-sidebar-primary/10 text-sidebar-primary">
+                    FA
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col text-left">
+                  <span className="text-sm font-semibold text-sidebar-foreground">
+                    Conta Finance AI
+                  </span>
+                  <span className="text-xs text-sidebar-foreground/70">
+                    Plano Premium
+                  </span>
+                </div>
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className="text-destructive hover:text-destructive"
+            >
+              <button
+                type="button"
+                onClick={handleSignOut}
+                disabled={isPending}
+                className="flex items-center gap-2"
               >
-                <Icon
-                  size={18}
-                  className={
-                    isActive
-                      ? "text-accent-foreground"
-                      : "text-muted-foreground"
-                  }
-                />
-                {item.title}
-              </Button>
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Bottom Actions */}
-      <div className="p-4 border-t border-border">
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-3 h-12 text-sm font-medium transition-colors text-destructive hover:bg-destructive/10"
-          onClick={handleSignOut}
-          disabled={isPending}
-        >
-          <LogOut size={18} />
-          {isPending ? "Saindo..." : "Sair"}
-        </Button>
-      </div>
-    </aside>
+                <LogOut className="h-4 w-4" />
+                <span>{isPending ? "Saindo..." : "Sair"}</span>
+              </button>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+      <SidebarRail />
+    </SidebarRoot>
   );
 }

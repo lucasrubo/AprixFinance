@@ -2,8 +2,24 @@
 
 import React from "react";
 import Link from "next/link";
-import { ChevronRight, LucideIcon } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { ActionCardProps } from "../types";
+import { cn } from "@/shared/lib/utils";
+
+const accentMap = {
+  blue: {
+    glow: "from-sky-500/10 via-transparent to-transparent",
+    icon: "bg-sky-500/10 text-sky-600",
+  },
+  emerald: {
+    glow: "from-emerald-500/10 via-transparent to-transparent",
+    icon: "bg-emerald-500/10 text-emerald-600",
+  },
+  purple: {
+    glow: "from-violet-500/10 via-transparent to-transparent",
+    icon: "bg-violet-500/10 text-violet-600",
+  },
+};
 
 export function ActionCard({
   title,
@@ -13,56 +29,46 @@ export function ActionCard({
   href,
   onClick,
 }: ActionCardProps) {
-  const colorMap = {
-    blue: "bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white dark:bg-blue-500/10 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white",
-    emerald:
-      "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white dark:bg-emerald-500/10 dark:text-emerald-400 dark:group-hover:bg-emerald-600 dark:group-hover:text-white",
-    purple:
-      "bg-purple-50 text-purple-600 group-hover:bg-purple-600 group-hover:text-white dark:bg-purple-500/10 dark:text-purple-400 dark:group-hover:bg-purple-600 dark:group-hover:text-white",
-  };
+  const accent = accentMap[color];
+
+  const content = (
+    <div className="group relative flex w-full items-center gap-4 overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-5 text-left shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-border">
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity duration-300 group-hover:opacity-100",
+          accent.glow,
+        )}
+      />
+      <div
+        className={cn(
+          "relative z-10 flex h-12 w-12 items-center justify-center rounded-2xl",
+          accent.icon,
+        )}
+      >
+        <Icon className="h-5 w-5" />
+      </div>
+      <div className="relative z-10 flex flex-col">
+        <h3 className="text-base font-semibold text-foreground">{title}</h3>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+      <ChevronRight className="relative z-10 ml-auto h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
+    </div>
+  );
 
   if (onClick) {
     return (
-      <button
-        onClick={onClick}
-        className="group text-left w-full p-5 rounded-2xl shadow-sm border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex items-center gap-4 bg-card border-border hover:border-border/80"
-      >
-        <div
-          className={`p-4 rounded-xl transition-colors duration-300 ${colorMap[color]}`}
-        >
-          <Icon className="w-6 h-6" />
-        </div>
-        <div>
-          <h3 className="font-bold transition-colors text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400">
-            {title}
-          </h3>
-          <p className="text-xs mt-0.5 text-muted-foreground">{description}</p>
-        </div>
-        <ChevronRight className="w-5 h-5 ml-auto group-hover:translate-x-1 transition-transform text-muted-foreground" />
+      <button type="button" onClick={onClick} className="w-full">
+        {content}
       </button>
     );
   }
 
-  if (!href) {
-    return null; // Ou poderia mostrar um erro, mas isso não deveria acontecer
-  }
+  if (!href) return null;
 
   return (
-    <Link href={href}>
-      <button className="group text-left w-full p-5 rounded-2xl shadow-sm border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex items-center gap-4 bg-card border-border hover:border-border/80">
-        <div
-          className={`p-4 rounded-xl transition-colors duration-300 ${colorMap[color]}`}
-        >
-          <Icon className="w-6 h-6" />
-        </div>
-        <div>
-          <h3 className="font-bold transition-colors text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400">
-            {title}
-          </h3>
-          <p className="text-xs mt-0.5 text-muted-foreground">{description}</p>
-        </div>
-        <ChevronRight className="w-5 h-5 ml-auto group-hover:translate-x-1 transition-transform text-muted-foreground" />
-      </button>
+    <Link href={href} className="w-full">
+      {content}
     </Link>
   );
 }

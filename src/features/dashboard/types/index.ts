@@ -36,7 +36,7 @@ export interface StatCardProps {
   trend?: "up" | "down";
   trendValue?: string;
   icon: LucideIcon;
-  colorClass: string;
+  accent: "emerald" | "rose" | "indigo" | "slate";
 }
 
 // Props para o componente TransactionItem (estende TransactionItemProps com onClick)

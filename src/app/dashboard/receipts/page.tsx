@@ -13,7 +13,14 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { CurrencyInput } from "@/shared/components/ui/currency-input";
 import { Label } from "@/shared/components/ui/label";
-import { Plus, Edit, Trash2, DollarSign, Calendar } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  DollarSign,
+  Calendar,
+  Loader2,
+} from "lucide-react";
 import {
   getReceiptsAction,
   createReceiptAction,
@@ -276,7 +283,7 @@ export default function ReceiptsPage() {
         </Card>
       )}
       {isLoading ? (
-        <div>Carregando...</div>
+        <Loader2 className="h-4 w-4 animate-spin mx-auto" />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {receipts.map((receipt) => (

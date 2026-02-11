@@ -4,56 +4,58 @@ import React from "react";
 import Link from "next/link";
 import { MessageSquare, Sparkles } from "lucide-react";
 
+const insights = [
+  {
+    title: "Padrão detectado",
+    body: "Gastos com transporte cresceram 18% na última semana.",
+    emoji: "💡",
+  },
+  {
+    title: "Sugestão",
+    body: "Mova assinaturas recorrentes para um grupo dedicado e monitore em tempo real.",
+    emoji: "📊",
+  },
+];
+
 export function AIAssistantCard() {
   return (
-    <div className="rounded-2xl shadow-sm border p-6 flex flex-col h-full relative overflow-hidden transition-colors bg-card border-border">
-      {/* Background Glow Effect */}
-      <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -mr-10 -mt-10 bg-indigo-500/5 dark:bg-indigo-500/10"></div>
-
-      <div className="flex items-center gap-2 mb-6 relative z-10">
-        <div className="bg-indigo-600 p-1.5 rounded-lg">
-          <Sparkles className="text-white w-4 h-4" />
+    <div className="relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-indigo-500/15 via-background to-background p-6 shadow-lg shadow-indigo-500/10">
+      <div className="absolute inset-0 opacity-40 blur-3xl" />
+      <div className="relative z-10 flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-500 text-white shadow-inner">
+          <Sparkles className="h-4 w-4" />
         </div>
-        <h3 className="font-bold text-lg text-foreground">AI Assistant</h3>
-      </div>
-
-      <div className="space-y-4 flex-1 relative z-10">
-        <div className="p-4 rounded-xl shadow-sm border hover:shadow-md transition-shadow cursor-default bg-card border-border">
-          <div className="flex gap-3">
-            <span className="text-xl">💡</span>
-            <div>
-              <p className="text-xs font-bold uppercase mb-1 text-indigo-600 dark:text-indigo-400">
-                Insight
-              </p>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                Mantenha seus recibos organizados. A IA detectou um padrão de
-                gastos em transporte.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-4 rounded-xl shadow-sm border hover:shadow-md transition-shadow cursor-default bg-card border-border">
-          <div className="flex gap-3">
-            <span className="text-xl">📊</span>
-            <div>
-              <p className="text-xs font-bold uppercase mb-1 text-emerald-600 dark:text-emerald-400">
-                Análise
-              </p>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                Use grupos para compartilhar despesas familiares e economizar
-                até 15%.
-              </p>
-            </div>
-          </div>
+        <div>
+          <h3 className="text-xl font-semibold text-foreground">
+            Finance AI
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Insights sob medida
+          </p>
         </div>
       </div>
 
-      <Link href="/ai-chat">
-        <button className="mt-6 w-full font-medium py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/20">
-          <MessageSquare size={18} />
-          Chat com IA
-        </button>
+      <div className="relative z-10 mt-6 space-y-3">
+        {insights.map((insight) => (
+          <div
+            key={insight.title}
+            className="rounded-2xl border border-white/20 bg-white/50 p-4 text-sm shadow-sm backdrop-blur dark:bg-white/5"
+          >
+            <div className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-indigo-600 dark:text-indigo-300">
+              <span>{insight.emoji}</span>
+              {insight.title}
+            </div>
+            <p className="text-sm text-muted-foreground">{insight.body}</p>
+          </div>
+        ))}
+      </div>
+
+      <Link
+        href="/dashboard/agent"
+        className="relative z-10 mt-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-sidebar-primary px-4 py-3 text-sm font-semibold text-sidebar-primary-foreground transition hover:brightness-110"
+      >
+        <MessageSquare className="h-4 w-4" />
+        Abrir chat inteligente
       </Link>
     </div>
   );

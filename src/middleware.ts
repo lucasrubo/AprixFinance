@@ -2,8 +2,6 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  console.log("🚀🚀🚀 MIDDLEWARE FUNCIONANDO - Path:", request.nextUrl.pathname);
-  
   // Se está acessando /dashboard sem estar logado, redireciona
   if (request.nextUrl.pathname.startsWith("/dashboard")) {
     const supabase = createServerClient(
@@ -21,10 +19,10 @@ export async function middleware(request: NextRequest) {
       },
     );
 
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    console.log("👤 User status:", user ? "LOGADO" : "NÃO LOGADO");
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (!user) {
       console.log("🚫 Redirecionando para /auth/login");
       const url = request.nextUrl.clone();
@@ -48,8 +46,10 @@ export async function middleware(request: NextRequest) {
       },
     );
 
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (user) {
       console.log("✅ Usuário logado, redirecionando para /dashboard");
       const url = request.nextUrl.clone();
@@ -73,8 +73,10 @@ export async function middleware(request: NextRequest) {
       },
     );
 
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     const url = request.nextUrl.clone();
     url.pathname = user ? "/dashboard" : "/auth/login";
     return NextResponse.redirect(url);

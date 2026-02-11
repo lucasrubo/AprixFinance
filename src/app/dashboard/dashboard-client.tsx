@@ -7,8 +7,6 @@ import {
   TrendingDown,
   Wallet,
   CreditCard,
-  MessageSquare,
-  Sparkles,
   PieChart,
   Users,
   FileText,
@@ -24,6 +22,7 @@ import { StatCard } from "@/features/dashboard/components/stat-card";
 import { ActionCard } from "@/features/dashboard/components/action-card";
 import { TransactionItem } from "@/features/dashboard/components/transaction-item";
 import { AIAssistantCard } from "@/features/dashboard/components/ai-assistant-card";
+import { ScrollArea } from "@/shared/components/ui/scroll-area";
 
 interface DashboardClientProps {
   userProfile: any;
@@ -60,31 +59,24 @@ export function DashboardClient({
 
   return (
     <div className="space-y-8">
-      {/* Welcome Section */}
-      <div className="flex justify-between w-full">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Dashboard</h2>
-          <p className="mt-1 text-muted-foreground">
-            Bem-vindo de volta, {userProfile?.nome || "Usuário"}! Aqui está um
-            resumo das suas finanças.
+      <div className="flex flex-col gap-4 rounded-3xl border border-dashed border-border/60 bg-card/70 p-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="space-y-1">
+          <p className="text-sm uppercase tracking-wide text-muted-foreground">
+            {new Date().toLocaleDateString("pt-BR", {
+              month: "long",
+              year: "numeric",
+            })}
           </p>
-        </div>
-        <div>
-          <button
-            onClick={handleReload}
-            disabled={isReloading}
-            className="p-2 rounded-lg hover:bg-muted transition-colors disabled:opacity-50"
-            title="Recarregar dados"
-          >
-            <RefreshCw
-              className={`h-5 w-5 text-muted-foreground ${isReloading ? "animate-spin" : ""}`}
-            />
-          </button>
+          <h2 className="text-3xl font-semibold text-foreground">
+            Olá, {userProfile?.nome || "Usuário"}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Aqui está um panorama atualizado das suas finanças inteligentes.
+          </p>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Receita Total"
           value={stats.total_income_formatted}
@@ -92,7 +84,7 @@ export function DashboardClient({
           trend={stats.trends?.income?.direction || "up"}
           trendValue={stats.trends?.income?.value}
           icon={Wallet}
-          colorClass="bg-emerald-500 text-emerald-600"
+          accent="emerald"
         />
         <StatCard
           title="Gasto Total"
@@ -101,18 +93,14 @@ export function DashboardClient({
           trend={stats.trends?.expenses?.direction || "down"}
           trendValue={stats.trends?.expenses?.value}
           icon={CreditCard}
-          colorClass="bg-rose-500 text-rose-600"
+          accent="rose"
         />
         <StatCard
           title="Saldo Líquido"
           value={stats.net_balance_formatted}
           subtext={stats.net_balance >= 0 ? "Saldo positivo" : "Saldo negativo"}
           icon={stats.net_balance >= 0 ? TrendingUp : TrendingDown}
-          colorClass={
-            stats.net_balance >= 0
-              ? "bg-green-500 text-green-600"
-              : "bg-red-500 text-red-600"
-          }
+          accent="slate"
         />
         <StatCard
           title="Notas Fiscais"
@@ -121,12 +109,11 @@ export function DashboardClient({
           trend={stats.trends?.receipts?.direction || "up"}
           trendValue={stats.trends?.receipts?.value}
           icon={FileText}
-          colorClass="bg-indigo-500 text-indigo-600"
+          accent="indigo"
         />
       </div>
 
-      {/* Action Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <ActionCard
           title="Novo Recibo"
           description="Adicionar nova despesa"
@@ -150,49 +137,52 @@ export function DashboardClient({
         />
       </div>
 
-      {/* Bottom Section: Transactions & AI */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
-        {/* Recent Activity */}
-        <div className="xl:col-span-2 rounded-2xl shadow-sm border flex flex-col bg-card border-border">
-          <div className="p-6 border-b flex justify-between items-center border-border">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div className="xl:col-span-2 rounded-3xl border border-border/70 bg-card/95 shadow-lg shadow-black/5">
+          <div className="flex items-center justify-between border-b border-border/70 px-6 py-4">
             <h3 className="font-bold text-lg text-foreground">
               Atividade Recente
             </h3>
             <Link href="/dashboard/receipts">
-              <button className="text-sm font-medium px-3 py-1.5 rounded-lg transition-colors text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-500/10">
+              <button className="rounded-full border border-transparent px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:border-border hover:text-foreground">
                 Ver tudo
               </button>
             </Link>
           </div>
-          <div className="p-2 space-y-1">
-            {filteredTransactions.length > 0 ? (
-              filteredTransactions.map((transaction, index) => (
-                <TransactionItem
-                  key={index}
-                  id={transaction.id || `receipt-${index}`}
-                  title={transaction.title}
-                  group={transaction.group}
-                  date={transaction.date}
-                  amount={transaction.amount}
-                  type={transaction.type}
-                  description={transaction.description}
-                  itemType={transaction.itemType || "receipt"}
-                  category={transaction.category}
-                  status={transaction.status}
-                  created_by={transaction.created_by}
-                  onClick={() => handleTransactionClick(transaction)}
-                />
-              ))
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>Nenhum recibo encontrado.</p>
-                <p className="text-sm mt-1">Adicione seu primeiro recibo!</p>
-              </div>
-            )}
-          </div>
+          <ScrollArea className="h-[420px] px-2">
+            <div className="space-y-1 px-4 py-2">
+              {filteredTransactions.length > 0 ? (
+                filteredTransactions.map((transaction, index) => (
+                  <TransactionItem
+                    key={index}
+                    id={transaction.id || `receipt-${index}`}
+                    title={transaction.title}
+                    group={transaction.group}
+                    date={transaction.date}
+                    amount={transaction.amount}
+                    type={transaction.type}
+                    description={transaction.description}
+                    itemType={transaction.itemType || "receipt"}
+                    category={transaction.category}
+                    status={transaction.status}
+                    created_by={transaction.created_by}
+                    onClick={() => handleTransactionClick(transaction)}
+                  />
+                ))
+              ) : (
+                <div className="flex h-64 flex-col items-center justify-center gap-2 text-center text-muted-foreground">
+                  <p className="text-sm font-medium">
+                    Nenhum recibo encontrado.
+                  </p>
+                  <p className="text-xs">
+                    Adicione seu primeiro registro para liberar insights.
+                  </p>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
         </div>
 
-        {/* AI Assistant */}
         <AIAssistantCard />
       </div>
     </div>
