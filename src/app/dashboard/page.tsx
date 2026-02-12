@@ -7,6 +7,8 @@ import {
 import { DashboardClient } from "./dashboard-client";
 import { TransactionItemProps } from "@/features/dashboard/types";
 
+export const dynamic = "force-dynamic";
+
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",

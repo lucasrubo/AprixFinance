@@ -1,6 +1,8 @@
 import { getFixedExpensesAction } from "@/features/fixed-expenses/actions/fixed-expense-actions";
 import { FixedExpensesClient } from "./fixed-expenses-client";
 
+export const dynamic = "force-dynamic";
+
 export default async function FixedExpensesPage() {
   const result = await getFixedExpensesAction();
   const expenses = result.success ? result.data || [] : [];

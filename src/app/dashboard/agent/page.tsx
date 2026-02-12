@@ -2,6 +2,8 @@ import { AgentChatPanel } from "@/features/agent/components/agent-chat-panel";
 import { createClient } from "@/shared/utils/supabase/server";
 import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 export default async function AgentPage() {
   const supabase = await createClient();
   const {

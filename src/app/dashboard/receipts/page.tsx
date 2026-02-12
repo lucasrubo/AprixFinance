@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { CreateReceiptModal } from "@/shared/components/create-receipt-modal";
 import {
@@ -26,7 +26,7 @@ import {
 import { getGroups } from "@/features/admin/actions/group-actions";
 import { Receipt, Group } from "@/shared/types";
 
-export default function ReceiptsPage() {
+function ReceiptsPageContent() {
   const searchParams = useSearchParams();
   const [receipts, setReceipts] = useState<any[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
@@ -166,5 +166,22 @@ export default function ReceiptsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ReceiptsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-white/80 px-4 py-3 text-sm shadow-sm dark:bg-white/5">
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            <span className="text-muted-foreground">Carregando...</span>
+          </div>
+        </div>
+      }
+    >
+      <ReceiptsPageContent />
+    </Suspense>
   );
 }
