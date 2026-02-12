@@ -142,20 +142,44 @@ export function FinancialChart({ className }: FinancialChartProps) {
               tick={{ fontSize: 12 }}
             />
             <Tooltip
-              formatter={(
-                value: number | undefined,
-                name: string | undefined,
-              ) => [
-                value !== undefined ? formatCurrency(value) : "R$ 0,00",
-                name === "income" ? "Receitas" : "Despesas",
-              ]}
-              labelFormatter={(label) => {
-                const date = new Date(label);
-                return date.toLocaleDateString("pt-BR", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                });
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length && label) {
+                  const date = new Date(label);
+                  const formattedDate = date.toLocaleDateString("pt-BR", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  });
+
+                  return (
+                    <div className="rounded-lg border bg-background p-3 shadow-md">
+                      <p className="text-sm font-medium text-foreground mb-2">
+                        {formattedDate}
+                      </p>
+                      {payload.map((entry, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-2 text-sm"
+                        >
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: entry.color }}
+                          />
+                          <span className="text-muted-foreground">
+                            {entry.dataKey === "income"
+                              ? "Receitas"
+                              : "Despesas"}
+                            :
+                          </span>
+                          <span className="font-medium text-foreground">
+                            {formatCurrency(entry.value as number)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }
+                return null;
               }}
             />
             <Area
