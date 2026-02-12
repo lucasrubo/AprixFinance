@@ -97,7 +97,7 @@ function DashboardLayoutClient({
           <SidebarInset className="font-sans lg:rounded-[32px] lg:border lg:border-border/50 lg:bg-card/80 lg:shadow-lg">
             <Header onTransactionSelect={handleTransactionSelect} />
             <div className="flex-1 overflow-y-auto px-4 py-6 lg:px-12 lg:py-10">
-              <div className="mx-auto w-full max-w-6xl pb-24">{children}</div>
+              <div className="mx-auto w-full max-w-6xl">{children}</div>
             </div>
           </SidebarInset>
         </div>

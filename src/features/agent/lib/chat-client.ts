@@ -17,6 +17,8 @@ export type ChatMessage = {
   content: string;
   metadata?: {
     result?: any;
+    insights?: string[];
+    suggestions?: string[];
   };
   session_id?: string;
   created_at?: string;
@@ -163,6 +165,7 @@ export async function loadConversationSessions(): Promise<
     messages: ChatMessage[];
     created_at: string;
     title?: string;
+    status?: "active" | "inactive";
   }[]
 > {
   const supabase = createClient();
@@ -207,6 +210,7 @@ export async function loadConversationSessions(): Promise<
           messages: [],
           created_at: sessionData.created_at,
           title: sessionData.title,
+          status: sessionData.status || "active",
         };
       }
 
@@ -224,6 +228,7 @@ export async function loadConversationSessions(): Promise<
         messages,
         created_at: sessionData.created_at,
         title: sessionData.title,
+        status: sessionData.status || "active",
       };
     }),
   );
@@ -280,6 +285,32 @@ export async function updateSessionTitle(
   if (error) {
     console.error("Erro ao atualizar título da sessão:", error);
     throw new Error("Erro ao atualizar título da sessão.");
+  }
+}
+
+export async function updateSessionStatus(
+  sessionId: string,
+  status: "active" | "inactive",
+): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+
+  if (sessionError || !session) {
+    throw new Error("Não foi possível recuperar sua sessão do Supabase.");
+  }
+
+  const { error } = await supabase
+    .from("sessions")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("session_id", sessionId)
+    .eq("user_id", session.user.id);
+
+  if (error) {
+    console.error("Erro ao atualizar status da sessão:", error);
+    throw new Error("Erro ao atualizar status da sessão.");
   }
 }
 
