@@ -33,6 +33,7 @@ export interface Receipt {
   descricao: string | null;
   data: string;
   tipo: "entrada" | "saida";
+  categoria_pagamento?: "credito" | "debito" | "dinheiro" | "pix";
   created_at: string;
   created_by?: User; // Usuário que criou o receipt
 }

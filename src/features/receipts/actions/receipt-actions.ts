@@ -11,6 +11,7 @@ export async function createReceiptAction(formData: FormData) {
   const dataValue = formData.get("data") as string;
   const groupId = formData.get("groupId") as string;
   const tipo = (formData.get("tipo") as string) || "saida";
+  const categoria_pagamento = (formData.get("categoria_pagamento") as string) || "debito";
 
   if (!titulo || !valor || !dataValue) {
     return { error: "Campos obrigatórios não preenchidos" };
@@ -33,6 +34,7 @@ export async function createReceiptAction(formData: FormData) {
       descricao,
       data: dataValue,
       tipo,
+      categoria_pagamento,
     };
 
     if (groupId) {
