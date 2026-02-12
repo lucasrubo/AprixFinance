@@ -505,9 +505,9 @@ export function AgentChatPanel({ userName }: AgentChatPanelProps) {
   };
 
   return (
-    <div className="flex flex-col lg:grid lg:gap-6 lg:grid-cols-[2fr_1fr] lg:h-[calc(80vh-5rem)]">
+    <div className="flex flex-col lg:grid lg:gap-6 lg:grid-cols-[2fr_1fr] lg:h-[calc(90vh-6rem)]">
       <div className="flex flex-col flex-1 lg:min-h-0">
-        <ScrollArea className="flex-1 rounded-2xl border border-border/60 bg-background/60 p-4">
+        <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
             {isLoadingHistory ? (
               <div className="flex items-center justify-center h-full min-h-[200px]">
@@ -541,7 +541,7 @@ export function AgentChatPanel({ userName }: AgentChatPanelProps) {
           </div>
         )}
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2">
           {suggestions.slice(0, 3).map((suggestion) => (
             <button
               key={suggestion}
@@ -693,8 +693,8 @@ function ChatMessageBubble({ message }: { message: ChatMessage }) {
       className={cn(
         "flex w-full flex-col gap-3 rounded-2xl border px-4 py-3 text-sm shadow-sm",
         isAssistant
-          ? "border-border/60 bg-white/80 text-foreground dark:bg-white/5"
-          : "ml-auto max-w-[85%] border-sidebar-primary/40 bg-sidebar-primary text-sidebar-primary-foreground",
+          ? "border-border/60 bg-white/80 text-foreground dark:bg-white/5 !rounded-tl-none"
+          : "ml-auto max-w-[85%] border-sidebar-primary/40 bg-sidebar-primary text-sidebar-primary-foreground !rounded-br-none",
       )}
     >
       <p>{message.content}</p>
