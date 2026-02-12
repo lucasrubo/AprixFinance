@@ -699,181 +699,174 @@ function ChatMessageBubble({ message }: { message: ChatMessage }) {
     >
       <p>{message.content}</p>
 
-      {message.metadata?.result &&
-        Object.keys(message.metadata.result).length > 0 && (
-          <div className="rounded-2xl border border-border/70 bg-background/80 p-3 text-xs">
-            {Object.entries(message.metadata.result).map(([key, value]) => (
-              <div key={key} className="mb-3 last:mb-0">
-                <div className="font-medium capitalize text-foreground mb-2">
-                  {key.replace(/_/g, " ")}:
-                </div>
-                {Array.isArray(value) ? (
-                  <div className="space-y-2">
-                    {value.map((item, index) => (
-                      <div
-                        key={index}
-                        className="border border-border/50 rounded-lg p-2 bg-background/50"
-                      >
-                        {typeof item === "object" ? (
-                          <div className="space-y-2">
-                            {Object.entries(item)
-                              .filter(
-                                ([itemKey]) =>
-                                  !itemKey.toLowerCase().includes("id"),
-                              )
-                              .map(([itemKey, itemValue]) => {
-                                const isDateField =
-                                  itemKey.toLowerCase().includes("data") ||
-                                  itemKey.toLowerCase().includes("date") ||
-                                  itemKey.toLowerCase().endsWith("_at");
-                                const isMoneyField =
-                                  itemKey.toLowerCase().includes("valor") ||
-                                  itemKey.toLowerCase().includes("price") ||
-                                  itemKey.toLowerCase().includes("amount");
-                                const displayKey = itemKey.replace(/_/g, " ");
+      {message.metadata?.result && (
+        <div className="rounded-2xl border border-border/70 bg-background/80 p-3 text-xs">
+          {Object.entries(message.metadata.result).map(([key, value]) => (
+            <div key={key} className="mb-3 last:mb-0">
+              <div className="font-medium capitalize text-foreground mb-2">
+                {key.replace(/_/g, " ")}:
+              </div>
+              {Array.isArray(value) ? (
+                <div className="space-y-2">
+                  {value.map((item, index) => (
+                    <div
+                      key={index}
+                      className="border border-border/50 rounded-lg p-2 bg-background/50"
+                    >
+                      {typeof item === "object" ? (
+                        <div className="space-y-2">
+                          {Object.entries(item)
+                            .filter(
+                              ([itemKey]) =>
+                                !itemKey.toLowerCase().includes("id"),
+                            )
+                            .map(([itemKey, itemValue]) => {
+                              const isDateField =
+                                itemKey.toLowerCase().includes("data") ||
+                                itemKey.toLowerCase().includes("date") ||
+                                itemKey.toLowerCase().endsWith("_at");
+                              const isMoneyField =
+                                itemKey.toLowerCase().includes("valor") ||
+                                itemKey.toLowerCase().includes("price") ||
+                                itemKey.toLowerCase().includes("amount");
+                              const displayKey = itemKey.replace(/_/g, " ");
 
-                                let displayValue;
-                                if (
-                                  isDateField &&
-                                  itemValue &&
-                                  typeof itemValue === "string"
-                                ) {
-                                  try {
-                                    const date = new Date(itemValue);
-                                    displayValue = date.toLocaleDateString(
-                                      "pt-BR",
-                                      {
-                                        day: "2-digit",
-                                        month: "2-digit",
-                                        year: "numeric",
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                      },
-                                    );
-                                  } catch {
-                                    displayValue = itemValue;
-                                  }
-                                } else if (
-                                  isMoneyField &&
-                                  typeof itemValue === "number"
-                                ) {
-                                  displayValue = new Intl.NumberFormat(
+                              let displayValue;
+                              if (
+                                isDateField &&
+                                itemValue &&
+                                typeof itemValue === "string"
+                              ) {
+                                try {
+                                  const date = new Date(itemValue);
+                                  displayValue = date.toLocaleDateString(
                                     "pt-BR",
                                     {
-                                      style: "currency",
-                                      currency: "BRL",
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
                                     },
-                                  ).format(itemValue);
-                                } else {
-                                  displayValue =
-                                    typeof itemValue === "string" &&
-                                    itemValue.length > 50
-                                      ? `${itemValue.substring(0, 50)}...`
-                                      : String(itemValue || "N/A");
+                                  );
+                                } catch {
+                                  displayValue = itemValue;
                                 }
+                              } else if (
+                                isMoneyField &&
+                                typeof itemValue === "number"
+                              ) {
+                                displayValue = new Intl.NumberFormat("pt-BR", {
+                                  style: "currency",
+                                  currency: "BRL",
+                                }).format(itemValue);
+                              } else {
+                                displayValue =
+                                  typeof itemValue === "string" &&
+                                  itemValue.length > 50
+                                    ? `${itemValue.substring(0, 50)}...`
+                                    : String(itemValue || "N/A");
+                              }
 
-                                return (
-                                  <div
-                                    key={itemKey}
-                                    className="flex justify-between items-start text-xs py-1"
+                              return (
+                                <div
+                                  key={itemKey}
+                                  className="flex justify-between items-start text-xs py-1"
+                                >
+                                  <span className="font-medium text-muted-foreground capitalize flex-shrink-0 mr-2">
+                                    {displayKey}:
+                                  </span>
+                                  <span
+                                    className={`text-foreground text-right ${isDateField ? "font-mono text-xs" : ""} ${isMoneyField ? "font-semibold text-green-600" : ""}`}
                                   >
-                                    <span className="font-medium text-muted-foreground capitalize flex-shrink-0 mr-2">
-                                      {displayKey}:
-                                    </span>
-                                    <span
-                                      className={`text-foreground text-right ${isDateField ? "font-mono text-xs" : ""} ${isMoneyField ? "font-semibold text-green-600" : ""}`}
-                                    >
-                                      {displayValue}
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                          </div>
-                        ) : (
-                          <span className="text-foreground">
-                            {String(item)}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : typeof value === "object" && value !== null ? (
-                  <div className="border border-border/50 rounded-lg p-3 bg-background/50">
-                    <div className="space-y-2">
-                      {Object.entries(value)
-                        .filter(
-                          ([objKey]) => !objKey.toLowerCase().includes("id"),
-                        )
-                        .map(([objKey, objValue]) => {
-                          const isDateField =
-                            objKey.toLowerCase().includes("data") ||
-                            objKey.toLowerCase().includes("date") ||
-                            objKey.toLowerCase().endsWith("_at");
-                          const isMoneyField =
-                            objKey.toLowerCase().includes("valor") ||
-                            objKey.toLowerCase().includes("price") ||
-                            objKey.toLowerCase().includes("amount");
-                          const displayKey = objKey.replace(/_/g, " ");
-
-                          let displayValue;
-                          if (
-                            isDateField &&
-                            objValue &&
-                            typeof objValue === "string"
-                          ) {
-                            try {
-                              const date = new Date(objValue);
-                              displayValue = date.toLocaleDateString("pt-BR", {
-                                day: "2-digit",
-                                month: "2-digit",
-                                year: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              });
-                            } catch {
-                              displayValue = objValue;
-                            }
-                          } else if (
-                            isMoneyField &&
-                            typeof objValue === "number"
-                          ) {
-                            displayValue = new Intl.NumberFormat("pt-BR", {
-                              style: "currency",
-                              currency: "BRL",
-                            }).format(objValue);
-                          } else {
-                            displayValue =
-                              typeof objValue === "string" &&
-                              objValue.length > 50
-                                ? `${objValue.substring(0, 50)}...`
-                                : String(objValue || "N/A");
-                          }
-
-                          return (
-                            <div
-                              key={objKey}
-                              className="flex justify-between items-start text-xs py-1"
-                            >
-                              <span className="font-medium text-muted-foreground capitalize flex-shrink-0 mr-2">
-                                {displayKey}:
-                              </span>
-                              <span
-                                className={`text-foreground text-right ${isDateField ? "font-mono text-xs" : ""} ${isMoneyField ? "font-semibold text-green-600" : ""}`}
-                              >
-                                {displayValue}
-                              </span>
-                            </div>
-                          );
-                        })}
+                                    {displayValue}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      ) : (
+                        <span className="text-foreground">{String(item)}</span>
+                      )}
                     </div>
+                  ))}
+                </div>
+              ) : typeof value === "object" && value !== null ? (
+                <div className="border border-border/50 rounded-lg p-3 bg-background/50">
+                  <div className="space-y-2">
+                    {Object.entries(value)
+                      .filter(
+                        ([objKey]) => !objKey.toLowerCase().includes("id"),
+                      )
+                      .map(([objKey, objValue]) => {
+                        const isDateField =
+                          objKey.toLowerCase().includes("data") ||
+                          objKey.toLowerCase().includes("date") ||
+                          objKey.toLowerCase().endsWith("_at");
+                        const isMoneyField =
+                          objKey.toLowerCase().includes("valor") ||
+                          objKey.toLowerCase().includes("price") ||
+                          objKey.toLowerCase().includes("amount");
+                        const displayKey = objKey.replace(/_/g, " ");
+
+                        let displayValue;
+                        if (
+                          isDateField &&
+                          objValue &&
+                          typeof objValue === "string"
+                        ) {
+                          try {
+                            const date = new Date(objValue);
+                            displayValue = date.toLocaleDateString("pt-BR", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            });
+                          } catch {
+                            displayValue = objValue;
+                          }
+                        } else if (
+                          isMoneyField &&
+                          typeof objValue === "number"
+                        ) {
+                          displayValue = new Intl.NumberFormat("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          }).format(objValue);
+                        } else {
+                          displayValue =
+                            typeof objValue === "string" && objValue.length > 50
+                              ? `${objValue.substring(0, 50)}...`
+                              : String(objValue || "N/A");
+                        }
+
+                        return (
+                          <div
+                            key={objKey}
+                            className="flex justify-between items-start text-xs py-1"
+                          >
+                            <span className="font-medium text-muted-foreground capitalize flex-shrink-0 mr-2">
+                              {displayKey}:
+                            </span>
+                            <span
+                              className={`text-foreground text-right ${isDateField ? "font-mono text-xs" : ""} ${isMoneyField ? "font-semibold text-green-600" : ""}`}
+                            >
+                              {displayValue}
+                            </span>
+                          </div>
+                        );
+                      })}
                   </div>
-                ) : (
-                  <span className="text-foreground">{String(value)}</span>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+                </div>
+              ) : (
+                <span className="text-foreground">{String(value)}</span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {insights.length > 0 && (
         <div className="rounded-2xl border border-blue-200 bg-blue-50/80 p-3 text-xs text-blue-800 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-200">
