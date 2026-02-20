@@ -41,6 +41,18 @@ export function DashboardClient({
   const { openCreateReceiptModal } = useCreateReceiptModal();
   const router = useRouter();
   const [isReloading, setIsReloading] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768); // Exemplo simples para detectar mobile
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const handleReload = () => {
     setIsReloading(true);
@@ -77,6 +89,34 @@ export function DashboardClient({
         </div>
       </div>
 
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <ActionCard
+          title="Novo Recibo"
+          description="Adicionar nova despesa"
+          icon={Plus}
+          color="blue"
+          onClick={openCreateReceiptModal}
+        />
+        {!isMobile && (
+          <>
+            <ActionCard
+              title="Gastos Fixos"
+              description="Gerenciar despesas recorrentes"
+              icon={PieChart}
+              color="emerald"
+              href="/dashboard/fixed-expenses"
+            />
+            <ActionCard
+              title="Gerenciar Grupos"
+              description="Organizar finanças familiares"
+              icon={Users}
+              color="purple"
+              href="/dashboard/groups"
+            />
+          </>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Receita Total"
@@ -111,30 +151,6 @@ export function DashboardClient({
           trendValue={stats.trends?.receipts?.value}
           icon={FileText}
           accent="indigo"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <ActionCard
-          title="Novo Recibo"
-          description="Adicionar nova despesa"
-          icon={Plus}
-          color="blue"
-          onClick={openCreateReceiptModal}
-        />
-        <ActionCard
-          title="Gastos Fixos"
-          description="Gerenciar despesas recorrentes"
-          icon={PieChart}
-          color="emerald"
-          href="/dashboard/fixed-expenses"
-        />
-        <ActionCard
-          title="Gerenciar Grupos"
-          description="Organizar finanças familiares"
-          icon={Users}
-          color="purple"
-          href="/dashboard/groups"
         />
       </div>
 
