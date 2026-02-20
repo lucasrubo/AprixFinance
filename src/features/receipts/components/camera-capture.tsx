@@ -40,7 +40,14 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
         return;
       }
 
-      const constraints = {
+      // Para iOS, tentar câmera frontal primeiro se for mobile
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isMobile =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent,
+        );
+
+      let constraints = {
         video: {
           facingMode: "environment",
           width: { ideal: 1280 },
@@ -49,17 +56,44 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
         audio: false,
       };
 
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log("Tentando acessar câmera com constraints:", constraints);
+
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (firstErr: any) {
+        console.log("Falhou com câmera frontal, tentando traseira:", firstErr);
+
+        // Se falhou com frontal, tentar traseira (apenas se não for iOS)
+        if (!isIOS && firstErr.name === "NotFoundError") {
+          constraints.video.facingMode = "environment";
+          stream = await navigator.mediaDevices.getUserMedia(constraints);
+        } else {
+          throw firstErr;
+        }
+      }
 
       if (!stream) {
         setError("Não foi possível obter acesso à câmera.");
         return;
       }
 
+      console.log("Stream obtido com sucesso:", stream);
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
-        setIsStreaming(true);
+
+        // Aguardar o vídeo carregar antes de marcar como streaming
+        videoRef.current.onloadedmetadata = () => {
+          console.log("Video metadata loaded");
+          setIsStreaming(true);
+        };
+
+        videoRef.current.onerror = (e) => {
+          console.error("Erro no elemento video:", e);
+          setError("Erro ao carregar o vídeo da câmera. Tente novamente.");
+        };
       }
     } catch (err: any) {
       console.error("Erro ao acessar câmera:", err);
@@ -67,20 +101,24 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
       // Mensagens de erro mais específicas
       if (err.name === "NotAllowedError") {
         setError(
-          "Acesso à câmera foi negado. Permita o acesso nas configurações do navegador.",
+          "Acesso à câmera foi negado. Permita o acesso nas configurações do navegador e tente novamente.",
         );
       } else if (
         err.name === "NotFoundError" ||
         err.name === "NotSupportedError"
       ) {
-        setError("Nenhuma câmera foi encontrada no dispositivo.");
+        setError(
+          "Nenhuma câmera foi encontrada no dispositivo. Verifique se o dispositivo tem câmera.",
+        );
       } else if (
         err.name === "NotReadableError" ||
         err.name === "SecurityError"
       ) {
         setError(
-          "Não foi possível acessar a câmera. Tente recarregar a página ou use HTTPS.",
+          "Não foi possível acessar a câmera. Certifique-se de estar em uma página segura (HTTPS) e que nenhuma outra app está usando a câmera.",
         );
+      } else if (err.name === "AbortError") {
+        setError("Acesso à câmera foi interrompido. Tente novamente.");
       } else {
         setError(
           `Erro ao acessar câmera: ${err.message || "Erro desconhecido"}`,
@@ -131,6 +169,27 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
     startCamera();
   };
 
+  const tryPlayVideo = async () => {
+    if (videoRef.current) {
+      try {
+        await videoRef.current.play();
+        console.log("Video reproduzindo após tentativa manual");
+      } catch (err) {
+        console.error("Falhou reprodução manual:", err);
+        setError(
+          "Toque na tela para permitir a câmera. iOS requer interação do usuário para reproduzir vídeo.",
+        );
+      }
+    }
+  };
+
+  const handleVideoClick = () => {
+    // Para iOS, tentar reproduzir vídeo ao tocar
+    if (!isStreaming) {
+      tryPlayVideo();
+    }
+  };
+
   const handleCancel = () => {
     stopCamera();
     setCapturedImage(null);
@@ -150,6 +209,9 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
             <li>• Verifique se está em uma página segura (HTTPS)</li>
             <li>• Confirme que o navegador tem permissão de câmera</li>
             <li>• Nenhuma outra aba está usando a câmera</li>
+            <li>
+              • No iPhone: Toque na tela do vídeo se não aparecer a câmera
+            </li>
             <li>• Tente recarregar a página</li>
           </ul>
         </div>
@@ -201,6 +263,8 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
         </div>
         <div className="text-xs text-muted-foreground text-center bg-muted p-3 rounded-lg">
           ⚠️ Certifique-se que o navegador tem permissão para acessar a câmera
+          <br />
+          📱 No iPhone: Pode ser necessário tocar na tela do vídeo após iniciar
         </div>
         <div className="flex gap-2">
           <Button onClick={startCamera}>
@@ -223,19 +287,37 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
           autoPlay
           playsInline
           muted
+          webkit-playsinline="true"
+          x5-video-player-type="h5"
+          x5-video-player-fullscreen="true"
           className="w-full h-auto max-h-96 rounded-lg border"
+          onClick={handleVideoClick}
           onLoadedMetadata={() => {
+            console.log("Video metadata loaded, tentando reproduzir...");
             // Video carregado com sucesso
             if (videoRef.current) {
-              videoRef.current.play().catch((err) => {
-                console.error("Erro ao reproduzir vídeo:", err);
-                setError("Não foi possível reproduzir o vídeo da câmera.");
-              });
+              videoRef.current
+                .play()
+                .then(() => {
+                  console.log("Video reproduzindo com sucesso");
+                })
+                .catch((err) => {
+                  console.error("Erro ao reproduzir vídeo:", err);
+                  setError(
+                    "Não foi possível reproduzir o vídeo da câmera. Toque na tela para permitir autoplay.",
+                  );
+                });
             }
           }}
           onError={(e) => {
             console.error("Erro no elemento video:", e);
             setError("Erro ao carregar o vídeo da câmera. Tente novamente.");
+          }}
+          onCanPlay={() => {
+            console.log("Video pode ser reproduzido");
+          }}
+          onPlay={() => {
+            console.log("Video começou a reproduzir");
           }}
         />
 
