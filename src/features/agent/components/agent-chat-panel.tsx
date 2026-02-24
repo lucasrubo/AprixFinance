@@ -500,7 +500,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
       className={cn(
         "flex w-full flex-col gap-3 rounded-2xl border px-4 py-3 text-sm shadow-sm",
         isAssistant
-          ? "border-border/60 bg-white/80 text-foreground dark:bg-white/5 !rounded-tl-none"
+          ? "border-none px-0 !bg-transparent text-foreground dark:bg-transparent !rounded-none"
           : "ml-auto max-w-[85%] border-sidebar-primary/40 bg-sidebar-primary text-sidebar-primary-foreground !rounded-br-none",
       )}
     >

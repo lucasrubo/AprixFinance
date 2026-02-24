@@ -122,13 +122,30 @@ export function CreateReceiptModal({
 
       const result = await response.json();
       if (response.ok && result.success) {
+        const { ultimos_4_digitos, bandeira } = result.data;
+
+        // Tenta encontrar o cartão pelo últimos 4 dígitos; se não, tenta pela bandeira
+        let matchedCardId: string | undefined;
+        if (ultimos_4_digitos) {
+          const byDigits = creditCards.find(
+            (c) => c.ultimos_4_digitos === ultimos_4_digitos,
+          );
+          matchedCardId = byDigits?.id;
+        }
+        if (!matchedCardId && bandeira) {
+          const byBandeira = creditCards.find((c) => c.bandeira === bandeira);
+          matchedCardId = byBandeira?.id;
+        }
+
         setFormData((prev) => ({
           ...prev,
           titulo: result.data.titulo || prev.titulo,
           valor: result.data.valor ? String(result.data.valor) : prev.valor,
+          descricao: result.data.descricao || prev.descricao,
           data: result.data.data || prev.data,
           categoria_pagamento:
             result.data.categoria_pagamento || prev.categoria_pagamento,
+          credit_card_id: matchedCardId ?? prev.credit_card_id,
         }));
       }
     } catch (_err) {
