@@ -1,11 +1,11 @@
-import { createClient } from "@/shared/utils/supabase/server";
-import { getMonthlyStatsAction } from "@/features/receipts/actions/receipt-actions";
+import { getCreditCardStatsAction } from "@/features/credit-cards/actions/credit-card-actions";
+import type { TransactionItemProps } from "@/features/dashboard/types";
 import {
-  getMonthlyStatsWithFixedExpenses,
   generateFixedExpenseOccurrences,
+  getMonthlyStatsWithFixedExpenses,
 } from "@/features/fixed-expenses/actions/fixed-expense-occurrences";
+import { createClient } from "@/shared/utils/supabase/server";
 import { DashboardClient } from "./dashboard-client";
-import { TransactionItemProps } from "@/features/dashboard/types";
 
 export const dynamic = "force-dynamic";
 
@@ -44,8 +44,13 @@ export default async function DashboardPage() {
     }
   }
 
-  // Buscar estatísticas mensais incluindo gastos fixos
-  const statsResult = await getMonthlyStatsWithFixedExpenses();
+  // Buscar dados em paralelo para melhor performance
+  const [statsResult, creditCardResult] = await Promise.all([
+    getMonthlyStatsWithFixedExpenses(),
+    getCreditCardStatsAction(),
+  ]);
+  const creditCardStats = creditCardResult.data ?? [];
+
   const stats = statsResult.success
     ? statsResult.data
     : {
@@ -169,8 +174,8 @@ export default async function DashboardPage() {
   const allTransactions = [...formattedReceipts, ...formattedFixedExpenses]
     .sort((a, b) => {
       // Usar comparação de string direta para datas no formato YYYY-MM-DD
-      const dateA = (a as any).sortDate || "0000-00-00";
-      const dateB = (b as any).sortDate || "0000-00-00";
+      const dateA = a.sortDate || "0000-00-00";
+      const dateB = b.sortDate || "0000-00-00";
       return dateB.localeCompare(dateA); // Ordem decrescente
     })
     .slice(0, 20); // Limitar a 20 itens mais recentes
@@ -180,6 +185,7 @@ export default async function DashboardPage() {
       userProfile={userProfile}
       stats={formattedStats}
       recentTransactions={allTransactions}
+      creditCardStats={creditCardStats}
     />
   );
 }

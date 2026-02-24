@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Notification } from "@/shared/types";
+import type { Notification } from "@/shared/types";
+import { useCallback, useEffect, useState } from "react";
 import {
-  getNotificationsAction,
-  markNotificationAsReadAction,
-  markAllNotificationsAsReadAction,
   deleteNotificationAction,
   getNotificationStatsAction,
+  getNotificationsAction,
+  markAllNotificationsAsReadAction,
+  markNotificationAsReadAction,
 } from "../actions/notifications-actions";
 
 export function useNotifications() {

@@ -1,7 +1,6 @@
 "use server";
 
 import { createClient } from "@/shared/utils/supabase/server";
-import { revalidatePath } from "next/cache";
 
 export interface FinancialDataPoint {
   date: string;
@@ -69,9 +68,10 @@ export async function getFinancialChartData(period: "30d" | "2m" | "1y") {
     }
 
     // Add receipts (income if tipo = 'entrada', expenses if 'saida')
-    receipts?.forEach((receipt) => {
+    for (const receipt of receipts ?? []) {
       const date = receipt.data;
       if (dataMap.has(date)) {
+        // biome-ignore lint/style/noNonNullAssertion: dataMap.has(date) garante que o valor existe
         const current = dataMap.get(date)!;
         if (receipt.tipo === "entrada") {
           current.income += receipt.valor;
@@ -79,16 +79,17 @@ export async function getFinancialChartData(period: "30d" | "2m" | "1y") {
           current.expenses += receipt.valor;
         }
       }
-    });
+    }
 
     // Add fixed expenses
-    fixedExpenses?.forEach((expense) => {
+    for (const expense of fixedExpenses ?? []) {
       const date = expense.data_inicio;
       if (dataMap.has(date)) {
+        // biome-ignore lint/style/noNonNullAssertion: dataMap.has(date) garante que o valor existe
         const current = dataMap.get(date)!;
         current.expenses += expense.valor_parcela;
       }
-    });
+    }
 
     // Convert to array and sort by date
     const result: FinancialDataPoint[] = Array.from(dataMap.entries())

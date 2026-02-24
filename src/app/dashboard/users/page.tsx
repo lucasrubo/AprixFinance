@@ -2,14 +2,14 @@
 
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
-import { UserManagement } from "@/features/admin/components/user-management";
 import {
   createUser,
-  getUsers,
   deleteUser,
+  getUsers,
 } from "@/features/admin/actions/user-actions";
-import { User } from "@/shared/types";
+import { UserManagement } from "@/features/admin/components/user-management";
+import type { User } from "@/shared/types";
+import { useEffect, useState } from "react";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);

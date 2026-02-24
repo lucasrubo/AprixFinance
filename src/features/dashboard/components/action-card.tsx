@@ -1,10 +1,8 @@
 "use client";
-
-import React from "react";
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
-import { ActionCardProps } from "../types";
 import { cn } from "@/shared/lib/utils";
+import { ChevronRight } from "lucide-react";
+import Link from "next/link";
+import type { ActionCardProps } from "../types";
 
 const accentMap = {
   blue: {

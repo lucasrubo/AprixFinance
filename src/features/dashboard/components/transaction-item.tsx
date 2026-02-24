@@ -1,9 +1,7 @@
 "use client";
-
-import React from "react";
-import { TrendingUp, TrendingDown, User } from "lucide-react";
-import { TransactionItemComponentProps } from "../types";
 import { Badge } from "@/shared/components/ui/badge";
+import { TrendingDown, TrendingUp, User } from "lucide-react";
+import type { TransactionItemComponentProps } from "../types";
 
 export function TransactionItem({
   title,

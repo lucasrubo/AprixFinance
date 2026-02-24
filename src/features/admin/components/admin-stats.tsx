@@ -1,13 +1,13 @@
 "use client";
 
+import { Badge } from "@/shared/components/ui/badge";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import { Badge } from "@/shared/components/ui/badge";
-import { Users, Receipt, TrendingUp, Shield } from "lucide-react";
+import { Receipt, Shield, TrendingUp, Users } from "lucide-react";
 
 interface AdminStatsProps {
   totalUsers?: number;

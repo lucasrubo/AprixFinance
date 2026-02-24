@@ -1,9 +1,7 @@
 "use client";
-
-import React from "react";
-import { NumericFormat } from "react-number-format";
 import { Input } from "@/shared/components/ui/input";
 import { cn } from "@/shared/lib/utils";
+import { NumericFormat } from "react-number-format";
 
 interface CurrencyInputProps {
   value: string | number;

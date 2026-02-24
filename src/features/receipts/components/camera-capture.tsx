@@ -1,15 +1,28 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
-import { Camera, X, RotateCw, Check, Loader2, ImagePlus, Aperture } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
+import {
+  Aperture,
+  Camera,
+  Check,
+  ImagePlus,
+  Loader2,
+  RotateCw,
+  X,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 interface CameraCaptureProps {
   onCapture: (imageBase64: string) => void;
   onCancel?: () => void;
 }
 
-type Mode = "choose" | "file-preview" | "live-loading" | "live-streaming" | "captured";
+type Mode =
+  | "choose"
+  | "file-preview"
+  | "live-loading"
+  | "live-streaming"
+  | "captured";
 
 /** Retorna true se o contexto é seguro (HTTPS ou localhost) */
 function isSecureContext() {
@@ -43,7 +56,9 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
   const [canUseCamera, setCanUseCamera] = useState(false);
 
   useEffect(() => {
-    setCanUseCamera(isSecureContext() && !!navigator.mediaDevices?.getUserMedia);
+    setCanUseCamera(
+      isSecureContext() && !!navigator.mediaDevices?.getUserMedia,
+    );
   }, []);
 
   // Stop stream on unmount
@@ -59,14 +74,24 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
         let stream: MediaStream;
         try {
           stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+            video: {
+              facingMode: { ideal: "environment" },
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+            },
             audio: false,
           });
         } catch {
-          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false,
+          });
         }
 
-        if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return; }
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
 
         streamRef.current = stream;
 
@@ -88,7 +113,9 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
     };
 
     start();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [mode]);
 
   const stopStream = () => {
@@ -194,7 +221,9 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
           <Button
             size="lg"
             className="w-full gap-2"
-            onClick={() => document.getElementById("camera-input-native")?.click()}
+            onClick={() =>
+              document.getElementById("camera-input-native")?.click()
+            }
           >
             <Camera className="w-5 h-5" />
             Tirar Foto com Câmera
@@ -217,7 +246,10 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
               size="lg"
               variant="ghost"
               className="w-full gap-2 text-muted-foreground"
-              onClick={() => { setError(null); setMode("live-loading"); }}
+              onClick={() => {
+                setError(null);
+                setMode("live-loading");
+              }}
             >
               <Aperture className="w-5 h-5" />
               Câmera ao Vivo (preview)
@@ -322,7 +354,14 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
           />
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="flex-1 gap-2" onClick={() => { setCapturedImage(null); setMode("live-loading"); }}>
+          <Button
+            variant="outline"
+            className="flex-1 gap-2"
+            onClick={() => {
+              setCapturedImage(null);
+              setMode("live-loading");
+            }}
+          >
             <RotateCw className="w-4 h-4" />
             Tirar Novamente
           </Button>

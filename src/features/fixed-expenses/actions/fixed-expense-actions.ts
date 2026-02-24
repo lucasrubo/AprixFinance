@@ -2,7 +2,7 @@
 
 import { createClient } from "@/shared/utils/supabase/server";
 import { revalidatePath } from "next/cache";
-import { CreateFixedExpenseData, UpdateFixedExpenseData } from "../types";
+import type { CreateFixedExpenseData, UpdateFixedExpenseData } from "../types";
 
 // Buscar gastos fixos do usuário
 export async function getFixedExpensesAction() {

@@ -1,7 +1,7 @@
 "use server";
 
+import type { Notification } from "@/shared/types";
 import { createClient } from "@/shared/utils/supabase/server";
-import { Notification } from "@/shared/types";
 
 export async function getNotificationsAction(): Promise<{
   success: boolean;

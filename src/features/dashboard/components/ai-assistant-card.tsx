@@ -1,8 +1,6 @@
 "use client";
-
-import React from "react";
-import Link from "next/link";
 import { MessageSquare, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 const insights = [
   {
@@ -26,12 +24,8 @@ export function AIAssistantCard() {
           <Sparkles className="h-4 w-4" />
         </div>
         <div>
-          <h3 className="text-xl font-semibold text-foreground">
-            Finance AI
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            Insights sob medida
-          </p>
+          <h3 className="text-xl font-semibold text-foreground">Finance AI</h3>
+          <p className="text-sm text-muted-foreground">Insights sob medida</p>
         </div>
       </div>
 

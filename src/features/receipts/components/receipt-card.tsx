@@ -1,25 +1,21 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 import { Separator } from "@/shared/components/ui/separator";
-import { Receipt } from "@/shared/types";
+import type { Receipt } from "@/shared/types";
 import {
-  Calendar,
-  Trash2,
-  Edit,
-  User,
-  CreditCard,
   Banknote,
-  Zap,
-  Users,
-  TrendingUp,
+  Calendar,
+  CreditCard,
+  Edit,
+  Trash2,
   TrendingDown,
+  TrendingUp,
+  User,
+  Users,
+  Zap,
 } from "lucide-react";
 
 interface ReceiptCardProps {
@@ -28,7 +24,10 @@ interface ReceiptCardProps {
   onDelete?: (receiptId: string) => void;
 }
 
-const CURRENCY = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const CURRENCY = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
 
 function formatDate(dateString: string) {
   const [year, month, day] = dateString.split("-");
@@ -43,18 +42,42 @@ const PAYMENT_INFO: Record<
   string,
   { label: string; icon: React.ReactNode; color: string }
 > = {
-  debito:   { label: "Débito",   icon: <CreditCard className="h-3 w-3" />, color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" },
-  credito:  { label: "Crédito",  icon: <CreditCard className="h-3 w-3" />, color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300" },
-  dinheiro: { label: "Dinheiro", icon: <Banknote className="h-3 w-3" />,   color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300" },
-  pix:      { label: "PIX",      icon: <Zap className="h-3 w-3" />,        color: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300" },
+  debito: {
+    label: "Débito",
+    icon: <CreditCard className="h-3 w-3" />,
+    color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  },
+  credito: {
+    label: "Crédito",
+    icon: <CreditCard className="h-3 w-3" />,
+    color:
+      "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+  },
+  dinheiro: {
+    label: "Dinheiro",
+    icon: <Banknote className="h-3 w-3" />,
+    color:
+      "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
+  },
+  pix: {
+    label: "PIX",
+    icon: <Zap className="h-3 w-3" />,
+    color: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300",
+  },
 };
 
 export function ReceiptCard({ receipt, onEdit, onDelete }: ReceiptCardProps) {
   const isEntrada = receipt.tipo === "entrada";
-  const payment = receipt.categoria_pagamento ? PAYMENT_INFO[receipt.categoria_pagamento] : null;
+  const payment = receipt.categoria_pagamento
+    ? PAYMENT_INFO[receipt.categoria_pagamento]
+    : null;
 
   return (
-    <Card className={`relative overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5`}>
+    <Card
+      className={
+        "relative overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5"
+      }
+    >
       {/* Barra lateral colorida indicando tipo */}
       <div
         className={`absolute left-0 top-0 h-full w-1 ${isEntrada ? "bg-emerald-500" : "bg-rose-500"}`}
@@ -63,7 +86,10 @@ export function ReceiptCard({ receipt, onEdit, onDelete }: ReceiptCardProps) {
       <CardHeader className="pl-5 pb-2 pt-4">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="font-semibold text-sm leading-tight truncate" title={receipt.titulo}>
+            <p
+              className="font-semibold text-sm leading-tight truncate"
+              title={receipt.titulo}
+            >
               {receipt.titulo}
             </p>
             <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
@@ -93,17 +119,23 @@ export function ReceiptCard({ receipt, onEdit, onDelete }: ReceiptCardProps) {
         {/* Valor destacado */}
         <p
           className={`text-xl font-bold tabular-nums ${
-            isEntrada ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+            isEntrada
+              ? "text-emerald-600 dark:text-emerald-400"
+              : "text-rose-600 dark:text-rose-400"
           }`}
         >
-          {isEntrada ? "+" : "-"}{formatCurrency(receipt.valor)}
+          {isEntrada ? "+" : "-"}
+          {formatCurrency(receipt.valor)}
         </p>
 
         {/* Badges de metadados */}
         {(payment || receipt.groups) && (
           <div className="flex flex-wrap gap-1.5">
             {payment && (
-              <Badge variant="secondary" className={`text-xs gap-1 ${payment.color}`}>
+              <Badge
+                variant="secondary"
+                className={`text-xs gap-1 ${payment.color}`}
+              >
                 {payment.icon}
                 {payment.label}
               </Badge>
@@ -119,7 +151,9 @@ export function ReceiptCard({ receipt, onEdit, onDelete }: ReceiptCardProps) {
 
         {/* Descrição */}
         {receipt.descricao && (
-          <p className="text-xs text-muted-foreground line-clamp-2">{receipt.descricao}</p>
+          <p className="text-xs text-muted-foreground line-clamp-2">
+            {receipt.descricao}
+          </p>
         )}
 
         {/* Criado por */}

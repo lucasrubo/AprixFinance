@@ -1,18 +1,12 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
-import { Input } from "@/shared/components/ui/input";
-import { CurrencyInput } from "@/shared/components/ui/currency-input";
-import { Label } from "@/shared/components/ui/label";
 import { Button } from "@/shared/components/ui/button";
-import { Loader2, User, Phone, DollarSign } from "lucide-react";
+import { Card, CardContent } from "@/shared/components/ui/card";
+import { CurrencyInput } from "@/shared/components/ui/currency-input";
+import { Input } from "@/shared/components/ui/input";
+import { Label } from "@/shared/components/ui/label";
+import { DollarSign, Loader2, Phone } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
 import { updateUserProfileAction } from "../actions/settings-actions";
 import { useUserProfile } from "../hooks/use-user-profile";
 

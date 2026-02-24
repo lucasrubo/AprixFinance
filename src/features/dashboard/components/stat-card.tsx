@@ -1,7 +1,5 @@
 "use client";
-
-import React from "react";
-import { StatCardProps } from "../types";
+import type { StatCardProps } from "../types";
 
 const accentMap = {
   emerald: {

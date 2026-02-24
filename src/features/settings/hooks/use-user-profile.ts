@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import type { Database } from "@/shared/types/database";
 import { createClient } from "@/shared/utils/supabase/client";
-import { Database } from "@/shared/types/database";
+import { useEffect, useState } from "react";
 
 type UserProfile = Database["public"]["Tables"]["users"]["Row"];
 

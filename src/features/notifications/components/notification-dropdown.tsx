@@ -1,16 +1,8 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import {
-  Bell,
-  X,
-  Check,
-  CheckCheck,
-  Trash2,
-  Clock,
-  Loader2,
-} from "lucide-react";
-import { Notification } from "@/shared/types";
+import type { Notification } from "@/shared/types";
+import { Bell, CheckCheck, Clock, Loader2, Trash2, X } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { useNotifications } from "../hooks/use-notifications";
 
 interface NotificationDropdownProps {
@@ -71,7 +63,7 @@ export function NotificationDropdown({
     }
   };
 
-  const getNotificationColor = (tipo: Notification["tipo"]) => {
+  const _getNotificationColor = (tipo: Notification["tipo"]) => {
     switch (tipo) {
       case "receipt":
         return "text-emerald-600 dark:text-emerald-400";
@@ -186,7 +178,7 @@ export function NotificationDropdown({
                           </h4>
                           <div className="flex items-center gap-1 flex-shrink-0">
                             {!notification.lida && (
-                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              <div className="w-2 h-2 bg-blue-500 rounded-full" />
                             )}
                             <button
                               onClick={(e) => {

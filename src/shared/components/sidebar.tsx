@@ -1,22 +1,10 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useTransition, type ComponentType } from "react";
+import { signOutAction } from "@/features/auth/actions/auth-actions";
+import { useUserProfile } from "@/features/settings/hooks/use-user-profile";
+import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
+import { Badge } from "@/shared/components/ui/badge";
 import {
-  LayoutDashboard,
-  Sparkles,
-  Receipt,
-  PieChart,
-  Group,
-  Users,
-  Settings,
-  LogOut,
-  Bookmark,
-  CreditCard,
-} from "lucide-react";
-import {
-  Sidebar as SidebarRoot,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
@@ -28,14 +16,25 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  Sidebar as SidebarRoot,
   SidebarSeparator,
   useSidebar,
 } from "@/shared/components/ui/sidebar";
-import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
-import { Badge } from "@/shared/components/ui/badge";
-import { signOutAction } from "@/features/auth/actions/auth-actions";
 import { useUserRole } from "@/shared/hooks/use-user-role";
-import { useUserProfile } from "@/features/settings/hooks/use-user-profile";
+import {
+  CreditCard,
+  Group,
+  LayoutDashboard,
+  LogOut,
+  PieChart,
+  Receipt,
+  Settings,
+  Sparkles,
+  Users,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { type ComponentType, useTransition } from "react";
 
 type NavItem = {
   title: string;
@@ -66,6 +65,11 @@ const overviewNav: NavItem[] = [
     title: "Gastos Fixos",
     icon: PieChart,
     href: "/dashboard/fixed-expenses",
+  },
+  {
+    title: "Cartões",
+    icon: CreditCard,
+    href: "/dashboard/credit-cards",
   },
 ];
 

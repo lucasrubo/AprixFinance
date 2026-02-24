@@ -1,7 +1,8 @@
+import { ThemeProvider } from "@/shared/components/theme-provider";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import type React from "react";
 import "./globals.css";
-import { ThemeProvider } from "@/shared/components/theme-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -41,8 +42,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        {/* Detecta e aplica o tema ANTES do primeiro paint — elimina o flash de branco */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme'),d=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(!t&&d))document.documentElement.classList.add('dark')}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body className={inter.className}>
+        {/* Loading overlay — cobre a tela enquanto o JS hidrata */}
+        <div id="app-loader" aria-hidden="true">
+          <div className="loader-ring" />
+        </div>
+        <script
+          dangerouslySetInnerHTML={{
+            // Não remove o nó do DOM — só esconde via CSS.
+            // Remover causaria hydration mismatch pois o React ainda espera encontrá-lo.
+            __html: `(function(){function h(){var l=document.getElementById('app-loader');if(l){l.style.opacity='0';l.style.pointerEvents='none';}}if(document.readyState==='complete'){setTimeout(h,200)}else{window.addEventListener('load',function(){setTimeout(h,200)})}})()`,
+          }}
+        />
         <ThemeProvider />
         {children}
       </body>

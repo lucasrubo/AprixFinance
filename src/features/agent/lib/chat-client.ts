@@ -125,7 +125,7 @@ export async function saveMessageToHistory(
 }
 
 export async function loadConversationHistory(
-  limit: number = 50,
+  limit = 50,
 ): Promise<ChatMessage[]> {
   const supabase = createClient();
   const {

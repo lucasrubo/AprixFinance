@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/shared/lib/supabase";
+import { type NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       .insert([
         {
           titulo,
-          valor: parseFloat(valor),
+          valor: Number.parseFloat(valor),
           descricao,
           tipo,
           data,

@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { CreateUserModal } from "@/shared/components/create-user-modal";
+import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import { Button } from "@/shared/components/ui/button";
-import { Badge } from "@/shared/components/ui/badge";
-import { Plus, Users, Trash2 } from "lucide-react";
-import { User } from "@/shared/types";
-import { CreateUserModal } from "@/shared/components/create-user-modal";
+import type { User } from "@/shared/types";
+import { Plus, Trash2, Users } from "lucide-react";
+import { useState } from "react";
 
 interface UserManagementProps {
   users?: User[];
@@ -76,10 +76,10 @@ export function UserManagement({
                   className="flex items-center justify-between p-3 bg-muted/30 rounded-md animate-pulse"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-muted rounded-full"></div>
+                    <div className="w-10 h-10 bg-muted rounded-full" />
                     <div className="space-y-2">
-                      <div className="w-40 h-4 bg-muted rounded"></div>
-                      <div className="w-24 h-3 bg-muted rounded"></div>
+                      <div className="w-40 h-4 bg-muted rounded" />
+                      <div className="w-24 h-3 bg-muted rounded" />
                     </div>
                   </div>
                 </div>

@@ -1,18 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { CreateGroupModal } from "@/shared/components/create-group-modal";
+import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import { Button } from "@/shared/components/ui/button";
-import { Badge } from "@/shared/components/ui/badge";
 import { Label } from "@/shared/components/ui/label";
-import { Plus, Users, Settings, UserPlus, Trash2 } from "lucide-react";
-import { Group, User, GroupMember } from "@/shared/types";
-import { CreateGroupModal } from "@/shared/components/create-group-modal";
+import type { Group, GroupMember, User } from "@/shared/types";
+import { Plus, Settings, Trash2, UserPlus, Users } from "lucide-react";
+import { useState } from "react";
 
 interface GroupManagementProps {
   groups?: (Group & { members: GroupMember[] })[];
@@ -78,8 +78,8 @@ export function GroupManagement({
                 <CardHeader className="pb-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <div className="h-6 w-40 bg-muted rounded mb-2"></div>
-                      <div className="h-4 w-64 bg-muted rounded"></div>
+                      <div className="h-6 w-40 bg-muted rounded mb-2" />
+                      <div className="h-4 w-64 bg-muted rounded" />
                     </div>
                   </div>
                 </CardHeader>
@@ -90,8 +90,8 @@ export function GroupManagement({
                         key={j}
                         className="flex items-center gap-3 p-3 bg-muted/30 rounded-md"
                       >
-                        <div className="w-8 h-8 bg-muted rounded-full"></div>
-                        <div className="h-4 w-32 bg-muted rounded"></div>
+                        <div className="w-8 h-8 bg-muted rounded-full" />
+                        <div className="h-4 w-32 bg-muted rounded" />
                       </div>
                     ))}
                   </div>

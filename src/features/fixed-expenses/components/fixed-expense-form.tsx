@@ -1,18 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { X, DollarSign, Calendar, Tag, FileText } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Input } from "@/shared/components/ui/input";
-import { CurrencyInput } from "@/shared/components/ui/currency-input";
-import { Label } from "@/shared/components/ui/label";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import { FixedExpenseFormProps, CreateFixedExpenseData } from "../types";
+import { CurrencyInput } from "@/shared/components/ui/currency-input";
+import { Input } from "@/shared/components/ui/input";
+import { Label } from "@/shared/components/ui/label";
+import { DollarSign, X } from "lucide-react";
+import type React from "react";
+import { useEffect, useState } from "react";
+import type { CreateFixedExpenseData, FixedExpenseFormProps } from "../types";
 
 export function FixedExpenseForm({
   expense,
@@ -128,7 +129,7 @@ export function FixedExpenseForm({
                 id="valor"
                 value={formData.valor_parcela.toString()}
                 onValueChange={(value) =>
-                  updateFormData("valor_parcela", parseFloat(value) || 0)
+                  updateFormData("valor_parcela", Number.parseFloat(value) || 0)
                 }
                 placeholder="0,00"
                 required
@@ -148,7 +149,7 @@ export function FixedExpenseForm({
                 onChange={(e) =>
                   updateFormData(
                     "data_pagamento",
-                    parseInt(e.target.value) || 1,
+                    Number.parseInt(e.target.value) || 1,
                   )
                 }
                 required
@@ -182,7 +183,9 @@ export function FixedExpenseForm({
                 onChange={(e) =>
                   updateFormData(
                     "duracao",
-                    e.target.value ? parseInt(e.target.value) : undefined,
+                    e.target.value
+                      ? Number.parseInt(e.target.value)
+                      : undefined,
                   )
                 }
               />

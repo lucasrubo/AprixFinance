@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/shared/utils/supabase/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
     const body = await request.json();
 
-    const { nome, description } = body;
+    const { nome } = body;
 
     if (!nome || typeof nome !== "string") {
       return NextResponse.json(

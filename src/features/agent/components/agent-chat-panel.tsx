@@ -1,21 +1,22 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { Loader2, Sparkles, Plus, Trash2 } from "lucide-react";
-import { Button } from "@/shared/components/ui/button";
-import { Textarea } from "@/shared/components/ui/textarea";
-import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import {
-  sendAgentMessage,
-  saveMessageToHistory,
-  loadConversationSessions,
+  type ChatMessage,
   clearConversationHistory,
-  generateSessionId,
   createSession,
   deleteSession,
-  type ChatMessage,
+  generateSessionId,
+  loadConversationSessions,
+  saveMessageToHistory,
+  sendAgentMessage,
 } from "@/features/agent/lib/chat-client";
+import { Button } from "@/shared/components/ui/button";
+import { ScrollArea } from "@/shared/components/ui/scroll-area";
+import { Textarea } from "@/shared/components/ui/textarea";
 import { cn } from "@/shared/lib/utils";
+import { Loader2, Plus, Sparkles, Trash2 } from "lucide-react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 
 const FALLBACK_SUGGESTIONS = [
   "Quais gastos fixos vencem esta semana?",
@@ -48,7 +49,8 @@ export function AgentChatPanel({ userName }: AgentChatPanelProps) {
   const [isSending, setIsSending] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [suggestions, setSuggestions] = useState<string[]>(FALLBACK_SUGGESTIONS);
+  const [suggestions, setSuggestions] =
+    useState<string[]>(FALLBACK_SUGGESTIONS);
 
   const endRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -94,7 +96,13 @@ export function AgentChatPanel({ userName }: AgentChatPanelProps) {
           if (cancelled) return;
           setCurrentSessionId(newId);
           setMessages([welcome]);
-          setSessions([{ session_id: newId, messages: [welcome], created_at: new Date().toISOString() }]);
+          setSessions([
+            {
+              session_id: newId,
+              messages: [welcome],
+              created_at: new Date().toISOString(),
+            },
+          ]);
         }
       } catch {
         if (cancelled) return;
@@ -113,8 +121,10 @@ export function AgentChatPanel({ userName }: AgentChatPanelProps) {
     };
 
     init();
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const sendMessage = async () => {
@@ -157,7 +167,10 @@ export function AgentChatPanel({ userName }: AgentChatPanelProps) {
 
       if (payload.suggestions?.length) setSuggestions(payload.suggestions);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Não foi possível falar com o assistente agora.";
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Não foi possível falar com o assistente agora.";
       setError(msg);
       setMessages((prev) => [
         ...prev,
@@ -188,7 +201,11 @@ export function AgentChatPanel({ userName }: AgentChatPanelProps) {
     } catch {
       // Non-fatal
     }
-    const newSession: Session = { session_id: newId, messages: [welcome], created_at: new Date().toISOString() };
+    const newSession: Session = {
+      session_id: newId,
+      messages: [welcome],
+      created_at: new Date().toISOString(),
+    };
     setSessions((prev) => [newSession, ...prev]);
     setCurrentSessionId(newId);
     setMessages([welcome]);
@@ -205,7 +222,10 @@ export function AgentChatPanel({ userName }: AgentChatPanelProps) {
     setSuggestions(FALLBACK_SUGGESTIONS);
   };
 
-  const handleDeleteSession = async (sessionId: string, e: React.MouseEvent) => {
+  const handleDeleteSession = async (
+    sessionId: string,
+    e: React.MouseEvent,
+  ) => {
     e.stopPropagation();
     if (!confirm("Tem certeza que deseja deletar esta conversa?")) return;
 
@@ -233,7 +253,10 @@ export function AgentChatPanel({ userName }: AgentChatPanelProps) {
   };
 
   const handleClearAll = async () => {
-    if (!confirm("Tem certeza que deseja limpar todo o histórico de conversas?")) return;
+    if (
+      !confirm("Tem certeza que deseja limpar todo o histórico de conversas?")
+    )
+      return;
     try {
       await clearConversationHistory();
       const newId = generateSessionId();
@@ -244,7 +267,13 @@ export function AgentChatPanel({ userName }: AgentChatPanelProps) {
       };
       setCurrentSessionId(newId);
       setMessages([welcome]);
-      setSessions([{ session_id: newId, messages: [welcome], created_at: new Date().toISOString() }]);
+      setSessions([
+        {
+          session_id: newId,
+          messages: [welcome],
+          created_at: new Date().toISOString(),
+        },
+      ]);
       setSuggestions(FALLBACK_SUGGESTIONS);
       setError(null);
     } catch {
@@ -252,7 +281,9 @@ export function AgentChatPanel({ userName }: AgentChatPanelProps) {
     }
   };
 
-  const activeSessions = sessions.filter((s) => s.status !== "inactive").slice(0, 6);
+  const activeSessions = sessions
+    .filter((s) => s.status !== "inactive")
+    .slice(0, 6);
 
   return (
     <div className="flex flex-col lg:grid lg:grid-cols-[2fr_1fr] lg:gap-6 lg:h-[calc(90vh-6rem)]">
@@ -264,7 +295,9 @@ export function AgentChatPanel({ userName }: AgentChatPanelProps) {
               <div className="flex items-center justify-center min-h-[200px]">
                 <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-white/80 px-4 py-3 text-sm shadow-sm dark:bg-white/5">
                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                  <span className="text-muted-foreground">Carregando histórico...</span>
+                  <span className="text-muted-foreground">
+                    Carregando histórico...
+                  </span>
                 </div>
               </div>
             ) : (
@@ -296,7 +329,10 @@ export function AgentChatPanel({ userName }: AgentChatPanelProps) {
             <button
               key={s}
               type="button"
-              onClick={() => { setInputValue(s); textareaRef.current?.focus(); }}
+              onClick={() => {
+                setInputValue(s);
+                textareaRef.current?.focus();
+              }}
               disabled={isSending}
               className="rounded-full border border-border/70 px-3 py-1 text-xs font-medium text-muted-foreground transition hover:border-border hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -306,7 +342,13 @@ export function AgentChatPanel({ userName }: AgentChatPanelProps) {
         </div>
 
         {/* Input form */}
-        <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="mt-4 space-y-3">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            sendMessage();
+          }}
+          className="mt-4 space-y-3"
+        >
           <Textarea
             ref={textareaRef}
             placeholder="Faça uma pergunta ou descreva o que precisa..."
@@ -344,7 +386,9 @@ export function AgentChatPanel({ userName }: AgentChatPanelProps) {
         {/* Session history */}
         <div className="rounded-3xl border border-border/70 bg-card/90 p-5">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm font-semibold text-foreground">Histórico de Conversas</h4>
+            <h4 className="text-sm font-semibold text-foreground">
+              Histórico de Conversas
+            </h4>
             <div className="flex gap-1">
               <Button
                 variant="ghost"
@@ -376,12 +420,21 @@ export function AgentChatPanel({ userName }: AgentChatPanelProps) {
               </li>
             ) : (
               activeSessions.map((session) => {
-                const date = new Date(session.created_at).toLocaleDateString("pt-BR");
-                const time = new Date(session.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-                const userMessages = session.messages.filter((m) => m.role === "user");
-                const preview = session.title
-                  || userMessages[0]?.content?.slice(0, 35) + (userMessages[0]?.content?.length > 35 ? "..." : "")
-                  || "Nova conversa";
+                const date = new Date(session.created_at).toLocaleDateString(
+                  "pt-BR",
+                );
+                const time = new Date(session.created_at).toLocaleTimeString(
+                  [],
+                  { hour: "2-digit", minute: "2-digit" },
+                );
+                const userMessages = session.messages.filter(
+                  (m) => m.role === "user",
+                );
+                const preview =
+                  session.title ||
+                  userMessages[0]?.content?.slice(0, 35) +
+                    (userMessages[0]?.content?.length > 35 ? "..." : "") ||
+                  "Nova conversa";
                 const isActive = session.session_id === currentSessionId;
 
                 return (
@@ -396,7 +449,9 @@ export function AgentChatPanel({ userName }: AgentChatPanelProps) {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-foreground truncate">{preview}</p>
+                        <p className="text-xs font-medium text-foreground truncate">
+                          {preview}
+                        </p>
                         <p className="text-[11px] text-muted-foreground/70 mt-0.5">
                           {date} {time} · {userMessages.length} mensagens
                         </p>
@@ -404,7 +459,9 @@ export function AgentChatPanel({ userName }: AgentChatPanelProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={(e) => handleDeleteSession(session.session_id, e)}
+                        onClick={(e) =>
+                          handleDeleteSession(session.session_id, e)
+                        }
                         className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
                         title="Deletar conversa"
                       >
@@ -421,11 +478,12 @@ export function AgentChatPanel({ userName }: AgentChatPanelProps) {
         {/* What I can do */}
         <div className="rounded-3xl border border-border/70 bg-card/90 p-5">
           <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Sparkles className="h-4 w-4" />
-            O que posso fazer?
+            <Sparkles className="h-4 w-4" />O que posso fazer?
           </h4>
           <p className="mt-3 text-sm text-muted-foreground">
-            Solicite relatórios de saldo, cadastre recibos, organize gastos fixos ou peça sugestões personalizadas. Tudo contextualizado com seus dados automaticamente.
+            Solicite relatórios de saldo, cadastre recibos, organize gastos
+            fixos ou peça sugestões personalizadas. Tudo contextualizado com
+            seus dados automaticamente.
           </p>
         </div>
       </div>
@@ -448,9 +506,10 @@ function MessageBubble({ message }: { message: ChatMessage }) {
     >
       <p className="whitespace-pre-wrap">{message.content}</p>
 
-      {message.metadata?.result && Object.keys(message.metadata.result).length > 0 && (
-        <ResultCard result={message.metadata.result} />
-      )}
+      {message.metadata?.result &&
+        Object.keys(message.metadata.result).length > 0 && (
+          <ResultCard result={message.metadata.result} />
+        )}
 
       {insights.length > 0 && (
         <div className="rounded-2xl border border-blue-200 bg-blue-50/80 p-3 text-xs text-blue-800 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-200">
@@ -483,7 +542,10 @@ function ResultCard({ result }: { result: Record<string, unknown> }) {
           {Array.isArray(value) ? (
             <div className="space-y-2">
               {value.map((item, i) => (
-                <div key={i} className="border border-border/50 rounded-lg p-2 bg-background/50">
+                <div
+                  key={i}
+                  className="border border-border/50 rounded-lg p-2 bg-background/50"
+                >
                   {typeof item === "object" && item !== null ? (
                     <FieldList fields={item as Record<string, unknown>} />
                   ) : (
@@ -511,21 +573,36 @@ function FieldList({ fields }: { fields: Record<string, unknown> }) {
       {Object.entries(fields)
         .filter(([k]) => !k.toLowerCase().includes("id"))
         .map(([k, v]) => {
-          const isDate = k.toLowerCase().includes("data") || k.toLowerCase().includes("date") || k.endsWith("_at");
-          const isMoney = k.toLowerCase().includes("valor") || k.toLowerCase().includes("price") || k.toLowerCase().includes("amount");
+          const isDate =
+            k.toLowerCase().includes("data") ||
+            k.toLowerCase().includes("date") ||
+            k.endsWith("_at");
+          const isMoney =
+            k.toLowerCase().includes("valor") ||
+            k.toLowerCase().includes("price") ||
+            k.toLowerCase().includes("amount");
 
           let display: string;
           if (isDate && typeof v === "string") {
             try {
-              display = new Date(v).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+              display = new Date(v).toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              });
             } catch {
               display = v;
             }
           } else if (isMoney && typeof v === "number") {
-            display = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
+            display = new Intl.NumberFormat("pt-BR", {
+              style: "currency",
+              currency: "BRL",
+            }).format(v);
           } else {
             const str = String(v ?? "N/A");
-            display = str.length > 50 ? str.slice(0, 50) + "..." : str;
+            display = str.length > 50 ? `${str.slice(0, 50)}...` : str;
           }
 
           return (
@@ -533,11 +610,13 @@ function FieldList({ fields }: { fields: Record<string, unknown> }) {
               <span className="font-medium text-muted-foreground capitalize flex-shrink-0 mr-2">
                 {k.replace(/_/g, " ")}:
               </span>
-              <span className={cn(
-                "text-foreground text-right",
-                isDate && "font-mono text-xs",
-                isMoney && "font-semibold text-green-600",
-              )}>
+              <span
+                className={cn(
+                  "text-foreground text-right",
+                  isDate && "font-mono text-xs",
+                  isMoney && "font-semibold text-green-600",
+                )}
+              >
                 {display}
               </span>
             </div>

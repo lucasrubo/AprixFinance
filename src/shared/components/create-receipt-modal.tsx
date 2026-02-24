@@ -1,12 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Plus, CheckCircle, FileText, Camera } from "lucide-react";
+import { getGroups } from "@/features/admin/actions/group-actions";
+import { getCreditCardsAction } from "@/features/credit-cards/actions/credit-card-actions";
+import { CreditCardSelector } from "@/features/credit-cards/components/credit-card-selector";
+import type { CreditCard } from "@/features/credit-cards/types";
+import {
+  createReceiptAction,
+  uploadReceiptImageAction,
+} from "@/features/receipts/actions/receipt-actions";
+import { CameraCapture } from "@/features/receipts/components/camera-capture";
 import { Button } from "@/shared/components/ui/button";
-import { Input } from "@/shared/components/ui/input";
 import { CurrencyInput } from "@/shared/components/ui/currency-input";
-import { Label } from "@/shared/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +19,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/components/ui/dialog";
+import { Input } from "@/shared/components/ui/input";
+import { Label } from "@/shared/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -22,11 +28,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { createReceiptAction } from "@/features/receipts/actions/receipt-actions";
-import { getGroups } from "@/features/admin/actions/group-actions";
-import { CameraCapture } from "@/features/receipts/components/camera-capture";
-import { Group } from "@/shared/types";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/shared/components/ui/tabs";
+import type { Group } from "@/shared/types";
 import { createClient } from "@/shared/utils/supabase/client";
+import { Camera, CheckCircle, FileText, Plus } from "lucide-react";
+import type React from "react";
+import { useEffect, useState } from "react";
 
 interface CreateReceiptModalProps {
   isOpen: boolean;
@@ -35,6 +47,18 @@ interface CreateReceiptModalProps {
   trigger?: React.ReactNode;
 }
 
+const INITIAL_FORM = {
+  titulo: "",
+  valor: "",
+  descricao: "",
+  data: new Date().toISOString().split("T")[0],
+  groupId: "",
+  tipo: "saida" as "entrada" | "saida",
+  categoria_pagamento: "debito" as "credito" | "debito" | "dinheiro" | "pix",
+  parcelas_total: 1,
+  credit_card_id: "",
+};
+
 export function CreateReceiptModal({
   isOpen,
   onClose,
@@ -42,21 +66,19 @@ export function CreateReceiptModal({
   trigger,
 }: CreateReceiptModalProps) {
   const [groups, setGroups] = useState<Group[]>([]);
+  const [creditCards, setCreditCards] = useState<CreditCard[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [open, setOpen] = useState(isOpen);
   const [activeTab, setActiveTab] = useState("camera");
   const [isProcessingOcr, setIsProcessingOcr] = useState(false);
-  
-  const [formData, setFormData] = useState({
-    titulo: "",
-    valor: "",
-    descricao: "",
-    data: new Date().toISOString().split("T")[0],
-    groupId: "",
-    tipo: "saida" as "entrada" | "saida",
-    categoria_pagamento: "debito" as "credito" | "debito" | "dinheiro" | "pix",
-  });
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [formData, setFormData] = useState(INITIAL_FORM);
+
+  // Valor por parcela (calculado em tempo real)
+  const valorNum = Number.parseFloat(formData.valor.replace(",", ".")) || 0;
+  const parcelaValor =
+    formData.parcelas_total > 1 ? valorNum / formData.parcelas_total : valorNum;
 
   useEffect(() => {
     setOpen(isOpen);
@@ -64,70 +86,61 @@ export function CreateReceiptModal({
 
   useEffect(() => {
     if (open) {
-      loadGroups();
+      Promise.all([getGroups(), getCreditCardsAction()]).then(
+        ([groupsResult, cardsResult]) => {
+          if (groupsResult.success && groupsResult.groups)
+            setGroups(groupsResult.groups);
+          if (cardsResult.success && cardsResult.data)
+            setCreditCards(cardsResult.data);
+        },
+      );
     }
   }, [open]);
 
-  const loadGroups = async () => {
-    try {
-      const result = await getGroups();
-      if (result.success && result.groups) {
-        setGroups(result.groups);
-      }
-    } catch (error) {
-      console.error("Erro ao carregar grupos:", error);
-    }
-  };
-
   const processReceiptOcr = async (imageBase64: string) => {
+    setCapturedImage(imageBase64);
     setIsProcessingOcr(true);
 
     try {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      const apiUrl = process.env.NEXT_PUBLIC_FINANCE_API_URL || "http://localhost:4000";
+      const apiUrl =
+        process.env.NEXT_PUBLIC_FINANCE_API_URL || "http://localhost:4000";
       const response = await fetch(`${apiUrl}/api/receipts/ocr`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          "Content-Type": "application/json",
+          ...(session?.access_token
+            ? { Authorization: `Bearer ${session.access_token}` }
+            : {}),
         },
-        body: JSON.stringify({
-          image: imageBase64,
-          group_id: formData.groupId || undefined,
-        }),
+        body: JSON.stringify({ image: imageBase64 }),
       });
 
       const result = await response.json();
-      
       if (response.ok && result.success) {
-        // Atualizar formulário com dados extraídos
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           titulo: result.data.titulo || prev.titulo,
           valor: result.data.valor ? String(result.data.valor) : prev.valor,
           data: result.data.data || prev.data,
-          categoria_pagamento: result.data.categoria_pagamento || prev.categoria_pagamento,
+          categoria_pagamento:
+            result.data.categoria_pagamento || prev.categoria_pagamento,
         }));
-        
-        // Mudar para aba manual para usuário revisar os dados
-        setActiveTab("manual");
-      } else {
-        alert("Erro ao processar imagem: " + (result.error || "Erro desconhecido"));
       }
-    } catch (error) {
-      console.error("Erro ao processar OCR:", error);
-      alert("Erro ao processar imagem. Tente novamente.");
+    } catch (_err) {
+      // OCR falhou — usuário preenche manualmente
     }
-    
+
+    setActiveTab("manual");
     setIsProcessingOcr(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!formData.titulo || !formData.valor) {
       alert("Por favor, preencha todos os campos obrigatórios.");
       return;
@@ -142,32 +155,30 @@ export function CreateReceiptModal({
     data.append("data", formData.data);
     data.append("tipo", formData.tipo);
     data.append("categoria_pagamento", formData.categoria_pagamento);
-    if (formData.groupId) {
-      data.append("groupId", formData.groupId);
-    }
+    data.append("parcelas_total", String(formData.parcelas_total));
+    if (formData.groupId) data.append("groupId", formData.groupId);
+    if (formData.credit_card_id)
+      data.append("credit_card_id", formData.credit_card_id);
 
     const result = await createReceiptAction(data);
 
-    if (result.success) {
-      setShowSuccess(true);
-      setFormData({
-        titulo: "",
-        valor: "",
-        descricao: "",
-        data: new Date().toISOString().split("T")[0],
-        groupId: "",
-        tipo: "saida",
-        categoria_pagamento: "debito",
-      });
+    if (result.success && result.data) {
+      // Upload da imagem em background — não bloqueia o feedback de sucesso
+      if (capturedImage) {
+        uploadReceiptImageAction(capturedImage, result.data.id).catch(() => {});
+      }
 
-      // Aguardar 1.5 segundos para mostrar a mensagem de sucesso
+      setShowSuccess(true);
+      setFormData({ ...INITIAL_FORM, data: new Date().toISOString().split("T")[0] });
+      setCapturedImage(null);
+
       setTimeout(() => {
         setShowSuccess(false);
         onSuccess?.();
         handleClose();
       }, 1500);
     } else {
-      alert("Erro ao criar recibo: " + (result.error || "Erro desconhecido"));
+      alert(`Erro ao criar recibo: ${result.error || "Erro desconhecido"}`);
     }
 
     setIsLoading(false);
@@ -177,6 +188,7 @@ export function CreateReceiptModal({
     setOpen(false);
     setActiveTab("camera");
     setIsProcessingOcr(false);
+    setCapturedImage(null);
     onClose();
   };
 
@@ -185,6 +197,7 @@ export function CreateReceiptModal({
     if (!newOpen) {
       setActiveTab("camera");
       setIsProcessingOcr(false);
+      setCapturedImage(null);
       onClose();
     }
   };
@@ -228,10 +241,11 @@ export function CreateReceiptModal({
               </TabsTrigger>
             </TabsList>
 
+            {/* ── Aba Câmera ── */}
             <TabsContent value="camera">
               {isProcessingOcr ? (
                 <div className="flex flex-col items-center justify-center py-8 space-y-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                   <div className="text-center">
                     <h3 className="font-medium">Processando recibo...</h3>
                     <p className="text-sm text-muted-foreground">
@@ -247,8 +261,28 @@ export function CreateReceiptModal({
               )}
             </TabsContent>
 
+            {/* ── Aba Manual ── */}
             <TabsContent value="manual">
               <form onSubmit={handleSubmit} className="space-y-4">
+
+                {/* Prévia da imagem capturada */}
+                {capturedImage && (
+                  <div className="relative overflow-hidden rounded-lg border border-border">
+                    <img
+                      src={capturedImage}
+                      alt="Prévia do recibo capturado"
+                      className="w-full max-h-32 object-cover"
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-1 top-1 rounded-full bg-background/80 px-2 py-0.5 text-xs text-muted-foreground hover:bg-background"
+                      onClick={() => setCapturedImage(null)}
+                    >
+                      remover
+                    </button>
+                  </div>
+                )}
+
                 <div>
                   <Label htmlFor="titulo">Título *</Label>
                   <Input
@@ -263,7 +297,7 @@ export function CreateReceiptModal({
                 </div>
 
                 <div>
-                  <Label htmlFor="valor">Valor *</Label>
+                  <Label htmlFor="valor">Valor total *</Label>
                   <CurrencyInput
                     id="valor"
                     value={formData.valor}
@@ -273,6 +307,39 @@ export function CreateReceiptModal({
                     placeholder="0,00"
                     required
                   />
+                </div>
+
+                {/* Parcelamento */}
+                <div className="space-y-2 rounded-lg border border-border/60 bg-muted/30 p-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium">Parcelamento</Label>
+                    <span className="text-xs text-muted-foreground">
+                      {formData.parcelas_total > 1
+                        ? `${formData.parcelas_total}× de R$ ${parcelaValor.toFixed(2).replace(".", ",")}`
+                        : "À vista"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min={1}
+                      max={48}
+                      value={formData.parcelas_total}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          parcelas_total: Math.max(
+                            1,
+                            Number.parseInt(e.target.value, 10) || 1,
+                          ),
+                        })
+                      }
+                      className="w-20"
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      {formData.parcelas_total === 1 ? "parcela (à vista)" : "parcelas"}
+                    </span>
+                  </div>
                 </div>
 
                 <div>
@@ -289,7 +356,7 @@ export function CreateReceiptModal({
                 </div>
 
                 <div>
-                  <Label htmlFor="tipo">Tipo *</Label>
+                  <Label>Tipo *</Label>
                   <Select
                     value={formData.tipo}
                     onValueChange={(value) =>
@@ -310,18 +377,20 @@ export function CreateReceiptModal({
                 </div>
 
                 <div>
-                  <Label htmlFor="categoria_pagamento">Categoria de Pagamento *</Label>
+                  <Label>Forma de pagamento *</Label>
                   <Select
                     value={formData.categoria_pagamento}
                     onValueChange={(value) =>
                       setFormData({
                         ...formData,
-                        categoria_pagamento: value as "credito" | "debito" | "dinheiro" | "pix",
+                        categoria_pagamento:
+                          value as typeof formData.categoria_pagamento,
+                        credit_card_id: value === "credito" ? formData.credit_card_id : "",
                       })
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione a categoria" />
+                      <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="debito">Cartão de Débito</SelectItem>
@@ -332,8 +401,23 @@ export function CreateReceiptModal({
                   </Select>
                 </div>
 
+                {/* Seletor de cartão — só aparece quando pagamento = crédito e há cartões */}
+                {formData.categoria_pagamento === "credito" &&
+                  creditCards.length > 0 && (
+                    <div>
+                      <Label>Cartão de crédito</Label>
+                      <CreditCardSelector
+                        cards={creditCards}
+                        value={formData.credit_card_id || undefined}
+                        onChange={(id) =>
+                          setFormData({ ...formData, credit_card_id: id ?? "" })
+                        }
+                      />
+                    </div>
+                  )}
+
                 <div>
-                  <Label htmlFor="groupId">Grupo (Opcional)</Label>
+                  <Label>Grupo (Opcional)</Label>
                   <Select
                     value={formData.groupId}
                     onValueChange={(value) =>

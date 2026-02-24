@@ -2,16 +2,16 @@
 
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
-import { GroupManagement } from "@/features/admin/components/group-management";
 import {
-  getGroups,
-  createGroup,
   addUserToGroup,
-  removeUserFromGroup,
+  createGroup,
+  getGroups,
   getUsers,
+  removeUserFromGroup,
 } from "@/features/admin/actions/group-actions";
-import { Group, User, GroupMember } from "@/shared/types";
+import { GroupManagement } from "@/features/admin/components/group-management";
+import type { Group, GroupMember, User } from "@/shared/types";
+import { useEffect, useState } from "react";
 
 export default function GroupsPage() {
   const [groups, setGroups] = useState<(Group & { members: GroupMember[] })[]>(

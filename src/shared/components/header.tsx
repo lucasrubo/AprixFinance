@@ -1,20 +1,20 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import type { TransactionItemProps } from "@/features/dashboard/types";
+import { NotificationDropdown } from "@/features/notifications/components/notification-dropdown";
+import { searchItemsAction } from "@/features/search/actions/search-actions";
+import { SidebarTrigger } from "@/shared/components/ui/sidebar";
 import {
+  Loader2,
   Moon,
+  RefreshCw,
   Search,
   Sun,
   TrendingDown,
   TrendingUp,
-  RefreshCw,
-  Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { TransactionItemProps } from "@/features/dashboard/types";
-import { searchItemsAction } from "@/features/search/actions/search-actions";
-import { NotificationDropdown } from "@/features/notifications/components/notification-dropdown";
-import { SidebarTrigger } from "@/shared/components/ui/sidebar";
+import { useEffect, useState } from "react";
 
 interface HeaderProps {
   onTransactionSelect: (transaction: TransactionItemProps) => void;

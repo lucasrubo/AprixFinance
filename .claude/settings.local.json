@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx biome check ./src/app/dashboard/fixed-expenses/fixed-expenses-client.tsx)",
+      "Bash(npx biome check ./src)",
+      "Bash(npx biome check --fix ./src)",
+      "Bash(npx biome check --fix --unsafe ./src/features/admin/components/ ./src/features/auth/actions/auth-actions.ts ./src/app/dashboard/receipts/)",
+      "Bash(npx biome check --fix --unsafe ./src/features/auth/components/signup-form.tsx ./src/features/admin/components/group-management.tsx)",
+      "Bash(npx biome check --fix --unsafe ./src/features/fixed-expenses/ ./src/features/dashboard/components/transaction-modal.tsx ./src/features/admin/)",
+      "Bash(npx biome check --fix --unsafe ./src)",
+      "Bash(npx tsc --noEmit)"
+    ]
+  }
+}

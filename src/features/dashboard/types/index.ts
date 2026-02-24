@@ -1,6 +1,6 @@
 // Tipos para os componentes do dashboard
 
-import { LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 // Props para transações (usado em vários componentes do dashboard)
 export interface TransactionItemProps {

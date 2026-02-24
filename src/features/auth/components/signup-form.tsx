@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { signUpAction } from "@/features/auth/actions/auth-actions";
+import { Button } from "@/shared/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,9 +11,8 @@ import {
 } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { Button } from "@/shared/components/ui/button";
-import { signUpAction } from "@/features/auth/actions/auth-actions";
 import Link from "next/link";
+import { useState } from "react";
 
 export function SignupForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +42,7 @@ export function SignupForm() {
       if (result?.error) {
         setError(result.error);
       }
-    } catch (err) {
+    } catch (_err) {
       setError("Erro interno. Tente novamente.");
     } finally {
       setIsLoading(false);

@@ -1,8 +1,6 @@
 "use client";
-
-import React from "react";
-import { X, Calendar, Tag, TrendingUp, TrendingDown, User } from "lucide-react";
-import { TransactionItemProps } from "@/features/dashboard/types";
+import type { TransactionItemProps } from "@/features/dashboard/types";
+import { Calendar, Tag, TrendingDown, TrendingUp, User, X } from "lucide-react";
 
 interface TransactionModalProps {
   transaction: TransactionItemProps | null;
@@ -28,6 +26,7 @@ export function TransactionModal({
               Detalhes {isFixedExpense ? "do Gasto Fixo" : "da Transação"}
             </h3>
             <button
+              type="button"
               onClick={onClose}
               className="p-2 hover:bg-accent rounded-lg transition-colors"
             >
@@ -145,6 +144,7 @@ export function TransactionModal({
 
           <div className="mt-6 flex gap-3">
             <button
+              type="button"
               onClick={onClose}
               className="flex-1 py-2 px-4 border border-border rounded-lg text-foreground hover:bg-accent transition-colors"
             >

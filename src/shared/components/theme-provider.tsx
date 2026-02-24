@@ -11,7 +11,7 @@ export function ThemeProvider() {
       ).matches;
       const theme = savedTheme || (prefersDark ? "dark" : "light");
       document.documentElement.classList.toggle("dark", theme === "dark");
-    } catch (e) {
+    } catch (_e) {
       // Fallback para tema claro se houver erro
       document.documentElement.classList.remove("dark");
     }

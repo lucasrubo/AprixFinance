@@ -32,6 +32,7 @@ export async function signUpAction(formData: FormData) {
     // Create user profile in users table
     const { error: profileError } = await supabase.from("users").insert({
       id: data.user.id,
+      // biome-ignore lint/style/noNonNullAssertion: email sempre presente após signUp
       email: data.user.email!,
       nome: name,
       tipo: "user",
@@ -68,8 +69,6 @@ export async function signInAction(formData: FormData) {
   if (!data.user) {
     return { error: "Falha na autenticação" };
   }
-
-  console.log("Login successful for user:", data.user.id);
   redirect("/dashboard");
 }
 

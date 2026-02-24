@@ -1,7 +1,7 @@
 "use server";
 
+import type { TransactionItemProps } from "@/features/dashboard/types";
 import { createClient } from "@/shared/utils/supabase/server";
-import { TransactionItemProps } from "@/features/dashboard/types";
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("pt-BR", {

@@ -1,10 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { X, Plus } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Input } from "@/shared/components/ui/input";
-import { Label } from "@/shared/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +9,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/components/ui/dialog";
+import { Input } from "@/shared/components/ui/input";
+import { Label } from "@/shared/components/ui/label";
+import type React from "react";
+import { useEffect, useState } from "react";
 
 interface CreateGroupModalProps {
   isOpen: boolean;

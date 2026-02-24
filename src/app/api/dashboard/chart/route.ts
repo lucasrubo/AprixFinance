@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
 import { getFinancialChartData } from "@/features/dashboard/actions/dashboard-actions";
+import { type NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,12 +17,11 @@ export async function GET(request: NextRequest) {
 
     if (result.success) {
       return NextResponse.json({ success: true, data: result.data });
-    } else {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 500 },
-      );
     }
+    return NextResponse.json(
+      { success: false, error: result.error },
+      { status: 500 },
+    );
   } catch (error) {
     console.error("API Error:", error);
     return NextResponse.json(

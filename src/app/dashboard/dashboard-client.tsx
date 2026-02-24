@@ -1,46 +1,55 @@
 "use client";
 
-import React, { useState } from "react";
-import {
-  Plus,
-  TrendingUp,
-  TrendingDown,
-  Wallet,
-  CreditCard,
-  PieChart,
-  Users,
-  FileText,
-  RefreshCw,
-} from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useTransactionModal } from "./contexts";
-import { useCreateReceiptModal } from "./contexts";
-import { useSearch } from "./contexts";
-import { TransactionItemProps } from "@/features/dashboard/types";
-import { StatCard } from "@/features/dashboard/components/stat-card";
 import { ActionCard } from "@/features/dashboard/components/action-card";
-import { TransactionItem } from "@/features/dashboard/components/transaction-item";
 import { AIAssistantCard } from "@/features/dashboard/components/ai-assistant-card";
-import { FinancialChart } from "@/features/dashboard/components/financial-chart";
+import { StatCard } from "@/features/dashboard/components/stat-card";
+import { TransactionItem } from "@/features/dashboard/components/transaction-item";
+import type { TransactionItemProps } from "@/features/dashboard/types";
+import { CreditCardWidget } from "@/features/credit-cards/components/credit-card-widget";
+import type { CreditCardStats } from "@/features/credit-cards/types";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
+import {
+  CreditCard,
+  FileText,
+  PieChart,
+  Plus,
+  TrendingDown,
+  TrendingUp,
+  Users,
+  Wallet,
+} from "lucide-react";
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import React, { useState } from "react";
+import { useCreateReceiptModal, useSearch, useTransactionModal } from "./contexts";
+
+// Recharts é pesado (~400 KB). Lazy load evita que entre no bundle inicial.
+const FinancialChart = dynamic(
+  () =>
+    import("@/features/dashboard/components/financial-chart").then((m) => ({
+      default: m.FinancialChart,
+    })),
+  { ssr: false },
+);
 
 interface DashboardClientProps {
+  // biome-ignore lint/suspicious/noExplicitAny: stats tem shape variável dependendo dos módulos
   userProfile: any;
+  // biome-ignore lint/suspicious/noExplicitAny: stats tem shape variável dependendo dos módulos
   stats: any;
   recentTransactions: TransactionItemProps[];
+  creditCardStats: CreditCardStats[];
 }
 
 export function DashboardClient({
   userProfile,
   stats,
   recentTransactions,
+  creditCardStats,
 }: DashboardClientProps) {
   const { searchTerm } = useSearch();
   const { openTransactionModal } = useTransactionModal();
   const { openCreateReceiptModal } = useCreateReceiptModal();
-  const router = useRouter();
-  const [isReloading, setIsReloading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   React.useEffect(() => {
@@ -53,12 +62,6 @@ export function DashboardClient({
       window.removeEventListener("resize", handleResize);
     };
   }, []);
-
-  const handleReload = () => {
-    setIsReloading(true);
-    router.refresh();
-    setTimeout(() => setIsReloading(false), 2000); // Stop spinning after 2 seconds
-  };
 
   const filteredTransactions = recentTransactions.filter(
     (transaction) =>
@@ -163,7 +166,10 @@ export function DashboardClient({
               Atividade Recente
             </h3>
             <Link href="/dashboard/receipts">
-              <button className="rounded-full border border-transparent px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:border-border hover:text-foreground">
+              <button
+                type="button"
+                className="rounded-full border border-transparent px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+              >
                 Ver tudo
               </button>
             </Link>
@@ -173,7 +179,7 @@ export function DashboardClient({
               {filteredTransactions.length > 0 ? (
                 filteredTransactions.map((transaction, index) => (
                   <TransactionItem
-                    key={index}
+                    key={transaction.id || `receipt-${index}`}
                     id={transaction.id || `receipt-${index}`}
                     title={transaction.title}
                     group={transaction.group}
@@ -202,7 +208,10 @@ export function DashboardClient({
           </ScrollArea>
         </div>
 
-        <AIAssistantCard />
+        <div className="flex flex-col gap-6">
+          <CreditCardWidget cards={creditCardStats} />
+          <AIAssistantCard />
+        </div>
       </div>
     </div>
   );

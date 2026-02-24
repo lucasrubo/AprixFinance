@@ -43,7 +43,7 @@ export async function generateFixedExpenseOccurrences(
 
     const occurrences: FixedExpenseOccurrence[] = [];
 
-    fixedExpenses.forEach((expense) => {
+    for (const expense of fixedExpenses) {
       const startPeriod = new Date(
         Math.max(
           new Date(startDate).getTime(),
@@ -61,7 +61,7 @@ export async function generateFixedExpenseOccurrences(
         firstPaymentDate.setMonth(firstPaymentDate.getMonth() + 1);
       }
 
-      let currentPaymentDate = new Date(firstPaymentDate);
+      const currentPaymentDate = new Date(firstPaymentDate);
 
       // Gerar ocorrências mês a mês até o fim do período
       while (currentPaymentDate <= endPeriod) {
@@ -93,7 +93,7 @@ export async function generateFixedExpenseOccurrences(
         // Ir para o próximo mês
         currentPaymentDate.setMonth(currentPaymentDate.getMonth() + 1);
       }
-    });
+    }
 
     return occurrences.sort(
       (a, b) =>
@@ -120,7 +120,7 @@ export async function getMonthlyStatsWithFixedExpenses(month?: string) {
 
     const currentMonth = month || new Date().toISOString().slice(0, 7); // YYYY-MM
     const startDate = `${currentMonth}-01`;
-    const endDate = new Date(currentMonth + "-01");
+    const endDate = new Date(`${currentMonth}-01`);
     endDate.setMonth(endDate.getMonth() + 1);
     endDate.setDate(0);
     const endDateStr = endDate.toISOString().slice(0, 10);
@@ -179,10 +179,10 @@ export async function getMonthlyStatsWithFixedExpenses(month?: string) {
     );
 
     // Adicionar gastos fixos ao agrupamento
-    fixedExpenseOccurrences.forEach((fe) => {
+    for (const fe of fixedExpenseOccurrences) {
       const day = fe.occurrence_date;
       spendingByDay[day] = (spendingByDay[day] || 0) + fe.valor_parcela;
-    });
+    }
 
     const spendingByDayArray = Object.entries(spendingByDay).map(
       ([date, amount]) => ({

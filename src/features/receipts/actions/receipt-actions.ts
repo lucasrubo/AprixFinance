@@ -2,16 +2,65 @@
 
 import { createClient } from "@/shared/utils/supabase/server";
 import { revalidatePath } from "next/cache";
-import type { Receipt } from "@/shared/types";
+
+export async function uploadReceiptImageAction(
+  imageBase64: string,
+  receiptId: string,
+): Promise<{ success: boolean; url?: string; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "Não autenticado" };
+
+    // Converter base64 → Uint8Array
+    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+    const buffer = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
+    const ext = imageBase64.startsWith("data:image/png") ? "png" : "jpg";
+    const path = `${user.id}/${receiptId}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("receipts-images")
+      .upload(path, buffer, {
+        contentType: ext === "png" ? "image/png" : "image/jpeg",
+        upsert: true,
+      });
+
+    if (uploadError) return { success: false, error: uploadError.message };
+
+    const { data: signed } = await supabase.storage
+      .from("receipts-images")
+      .createSignedUrl(path, 60 * 60 * 24 * 365); // 1 ano
+
+    // Salvar URL no recibo
+    await supabase
+      .from("receipts")
+      .update({ recibo_imagem_url: signed?.signedUrl })
+      .eq("id", receiptId)
+      .eq("user_id", user.id);
+
+    return { success: true, url: signed?.signedUrl };
+  } catch (err) {
+    console.error("uploadReceiptImageAction:", err);
+    return { success: false, error: "Erro ao fazer upload da imagem" };
+  }
+}
 
 export async function createReceiptAction(formData: FormData) {
   const titulo = formData.get("titulo") as string;
-  const valor = parseFloat(formData.get("valor") as string);
+  const valor = Number.parseFloat(formData.get("valor") as string);
   const descricao = formData.get("descricao") as string;
   const dataValue = formData.get("data") as string;
   const groupId = formData.get("groupId") as string;
   const tipo = (formData.get("tipo") as string) || "saida";
-  const categoria_pagamento = (formData.get("categoria_pagamento") as string) || "debito";
+  const categoria_pagamento =
+    (formData.get("categoria_pagamento") as string) || "debito";
+  const parcelas_total = Number.parseInt(
+    (formData.get("parcelas_total") as string) || "1",
+    10,
+  );
+  const credit_card_id = (formData.get("credit_card_id") as string) || null;
 
   if (!titulo || !valor || !dataValue) {
     return { error: "Campos obrigatórios não preenchidos" };
@@ -27,19 +76,21 @@ export async function createReceiptAction(formData: FormData) {
       return { error: "Usuário não autenticado" };
     }
 
-    const receiptData: any = {
+    const receiptData: Record<string, unknown> = {
       user_id: user.id,
       titulo,
       valor,
-      descricao,
+      descricao: descricao || null,
       data: dataValue,
       tipo,
       categoria_pagamento,
+      parcelas_total: parcelas_total > 0 ? parcelas_total : 1,
+      parcelas_valor:
+        parcelas_total > 1 ? Math.round((valor / parcelas_total) * 100) / 100 : valor,
     };
 
-    if (groupId) {
-      receiptData.group_id = groupId;
-    }
+    if (groupId) receiptData.group_id = groupId;
+    if (credit_card_id) receiptData.credit_card_id = credit_card_id;
 
     const { data, error } = await supabase
       .from("receipts")
@@ -52,6 +103,7 @@ export async function createReceiptAction(formData: FormData) {
       return { error: "Erro ao criar recibo" };
     }
 
+    revalidatePath("/dashboard");
     revalidatePath("/dashboard/receipts");
     return { success: true, data };
   } catch (error) {
@@ -131,7 +183,7 @@ export async function updateReceiptAction(
     }
 
     const titulo = formData.get("titulo") as string;
-    const valor = parseFloat(formData.get("valor") as string);
+    const valor = Number.parseFloat(formData.get("valor") as string);
     const descricao = formData.get("descricao") as string;
     const dataValue = formData.get("data") as string;
     const groupId = formData.get("groupId") as string;
@@ -220,7 +272,7 @@ export async function getMonthlyStatsAction(month?: string) {
     // Função auxiliar para calcular stats de um mês específico
     const calculateMonthStats = async (monthStr: string) => {
       const startDate = `${monthStr}-01`;
-      const endDate = new Date(monthStr + "-01");
+      const endDate = new Date(`${monthStr}-01`);
       endDate.setMonth(endDate.getMonth() + 1);
       endDate.setDate(0);
       const endDateStr = endDate.toISOString().slice(0, 10);
@@ -289,7 +341,7 @@ export async function getMonthlyStatsAction(month?: string) {
     }
 
     // Calcular stats do mês anterior para trends
-    const currentDate = new Date(currentMonth + "-01");
+    const currentDate = new Date(`${currentMonth}-01`);
     const previousDate = new Date(currentDate);
     previousDate.setMonth(previousDate.getMonth() - 1);
     const previousMonth = previousDate.toISOString().slice(0, 7);

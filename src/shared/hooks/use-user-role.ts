@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { createClient } from "@/shared/utils/supabase/client";
+import { useEffect, useState } from "react";
 
 export function useUserRole() {
   const [isAdmin, setIsAdmin] = useState(false);

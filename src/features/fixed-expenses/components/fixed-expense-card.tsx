@@ -1,20 +1,18 @@
 "use client";
-
-import React from "react";
-import {
-  Calendar,
-  Clock,
-  Pause,
-  Play,
-  Trash2,
-  Edit,
-  DollarSign,
-  User,
-} from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
-import { FixedExpenseCardProps } from "../types";
+import {
+  Calendar,
+  Clock,
+  DollarSign,
+  Edit,
+  Pause,
+  Play,
+  Trash2,
+  User,
+} from "lucide-react";
+import type { FixedExpenseCardProps } from "../types";
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat("pt-BR", {
@@ -68,7 +66,7 @@ export function FixedExpenseCard({
   }
 
   const isActive = expense.status === "ativo";
-  const isPaused = expense.status === "pausado";
+  const _isPaused = expense.status === "pausado";
 
   return (
     <Card className="transition-all duration-200 hover:shadow-md">

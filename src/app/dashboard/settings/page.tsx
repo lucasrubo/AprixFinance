@@ -1,3 +1,4 @@
+import { NotificationsSettings } from "@/features/notifications/components/notifications-settings";
 import { SettingsForm } from "@/features/settings/components/settings-form";
 
 export default function SettingsPage() {
@@ -10,8 +11,9 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <div className="max-w-2xl">
+      <div className="max-w-2xl space-y-6">
         <SettingsForm />
+        <NotificationsSettings />
       </div>
     </div>
   );

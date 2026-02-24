@@ -1,5 +1,5 @@
 // Tipos para gastos fixos
-import { User } from "@/shared/types";
+import type { User } from "@/shared/types";
 
 export interface FixedExpense {
   id: string;
@@ -27,7 +27,8 @@ export interface CreateFixedExpenseData {
   duracao?: number;
 }
 
-export interface UpdateFixedExpenseData extends Partial<CreateFixedExpenseData> {
+export interface UpdateFixedExpenseData
+  extends Partial<CreateFixedExpenseData> {
   status?: "ativo" | "cancelado" | "pausado";
 }
 

@@ -1,20 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
-import { Sidebar as AppSidebar } from "@/shared/components/sidebar";
-import { Header } from "@/shared/components/header";
 import { TransactionModal } from "@/features/dashboard/components/transaction-modal";
+import type { TransactionItemProps } from "@/features/dashboard/types";
 import { CreateReceiptModal } from "@/shared/components/create-receipt-modal";
-import { TransactionItemProps } from "@/features/dashboard/types";
+import { Header } from "@/shared/components/header";
+import { Sidebar as AppSidebar } from "@/shared/components/sidebar";
 import { SidebarInset, SidebarProvider } from "@/shared/components/ui/sidebar";
+import type React from "react";
+import { useState } from "react";
 import {
-  TransactionModalContext,
   CreateReceiptModalContext,
   SearchContext,
-  useTransactions,
-  useTransactionModal,
-  useCreateReceiptModal,
+  TransactionModalContext,
   TransactionsProvider,
+  useTransactionModal,
+  useTransactions,
 } from "./contexts";
 
 interface DashboardLayoutProps {
@@ -82,7 +82,7 @@ function DashboardLayoutClient({
   closeCreateReceiptModal: () => void;
 }) {
   const [searchTerm, setSearchTerm] = useState("");
-  const { transactions } = useTransactions();
+  useTransactions();
   const { openTransactionModal } = useTransactionModal();
 
   const handleTransactionSelect = (transaction: TransactionItemProps) => {
@@ -113,7 +113,11 @@ function DashboardLayoutClient({
             closeCreateReceiptModal();
           }}
           trigger={
-            <button style={{ display: "none" }} id="create-receipt-trigger">
+            <button
+              type="button"
+              style={{ display: "none" }}
+              id="create-receipt-trigger"
+            >
               Trigger
             </button>
           }

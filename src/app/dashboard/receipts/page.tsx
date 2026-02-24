@@ -2,19 +2,19 @@
 
 export const dynamic = "force-dynamic";
 
-import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { CreateReceiptModal } from "@/shared/components/create-receipt-modal";
+import { getGroups } from "@/features/admin/actions/group-actions";
+import {
+  deleteReceiptAction,
+  getReceiptsAction,
+} from "@/features/receipts/actions/receipt-actions";
 import { ReceiptCard } from "@/features/receipts/components/receipt-card";
+import { CreateReceiptModal } from "@/shared/components/create-receipt-modal";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
+import type { Group, Receipt } from "@/shared/types";
 import { Plus, ReceiptText } from "lucide-react";
-import {
-  getReceiptsAction,
-  deleteReceiptAction,
-} from "@/features/receipts/actions/receipt-actions";
-import { getGroups } from "@/features/admin/actions/group-actions";
-import { Receipt, Group } from "@/shared/types";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 
 // ─── Skeleton ────────────────────────────────────────────────────────────────
 
@@ -68,8 +68,10 @@ function EmptyState({ onNew }: { onNew: () => void }) {
 function ReceiptsPageContent() {
   const searchParams = useSearchParams();
 
-  const [receipts, setReceipts] = useState<(Receipt & { groups?: { nome: string } | null })[]>([]);
-  const [groups, setGroups] = useState<Group[]>([]);
+  const [receipts, setReceipts] = useState<
+    (Receipt & { groups?: { nome: string } | null })[]
+  >([]);
+  const [_groups, setGroups] = useState<Group[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
 

@@ -3,6 +3,10 @@ const isDev = process.env.NODE_ENV === "development";
 
 const nextConfig = {
   turbopack: {},
+  eslint: {
+    // Biome é usado no lugar do ESLint; desativa a verificação nativa do Next.js
+    ignoreDuringBuilds: true,
+  },
 };
 
 // Only load next-pwa in production to avoid Turbopack conflicts in dev

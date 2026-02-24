@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { signInAction } from "@/features/auth/actions/auth-actions";
+import { Button } from "@/shared/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,9 +11,8 @@ import {
 } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { Button } from "@/shared/components/ui/button";
-import { signInAction } from "@/features/auth/actions/auth-actions";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useState, useTransition } from "react";
 
 export function LoginForm() {
   const [error, setError] = useState<string | null>(null);

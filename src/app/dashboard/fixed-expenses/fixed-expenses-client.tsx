@@ -1,7 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Plus, Calendar, DollarSign, AlertTriangle } from "lucide-react";
+import {
+  createFixedExpenseAction,
+  deleteFixedExpenseAction,
+  getFixedExpensesAction,
+  toggleFixedExpenseStatusAction,
+  updateFixedExpenseAction,
+} from "@/features/fixed-expenses/actions/fixed-expense-actions";
+import { FixedExpenseCard } from "@/features/fixed-expenses/components/fixed-expense-card";
+import { FixedExpenseForm } from "@/features/fixed-expenses/components/fixed-expense-form";
+import type {
+  CreateFixedExpenseData,
+  FixedExpense,
+} from "@/features/fixed-expenses/types";
 import { Button } from "@/shared/components/ui/button";
 import {
   Card,
@@ -9,19 +20,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import { FixedExpenseCard } from "@/features/fixed-expenses/components/fixed-expense-card";
-import { FixedExpenseForm } from "@/features/fixed-expenses/components/fixed-expense-form";
-import {
-  getFixedExpensesAction,
-  createFixedExpenseAction,
-  updateFixedExpenseAction,
-  deleteFixedExpenseAction,
-  toggleFixedExpenseStatusAction,
-} from "@/features/fixed-expenses/actions/fixed-expense-actions";
-import {
-  FixedExpense,
-  CreateFixedExpenseData,
-} from "@/features/fixed-expenses/types";
+import { AlertTriangle, Calendar, DollarSign, Plus } from "lucide-react";
+import { useState } from "react";
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat("pt-BR", {
@@ -40,7 +40,7 @@ export function FixedExpensesClient({
   const [editingExpense, setEditingExpense] = useState<
     FixedExpense | undefined
   >();
-  const [isLoading, setIsLoading] = useState(false);
+  const [_isLoading, setIsLoading] = useState(false);
 
   const activeExpenses = expenses.filter((exp) => exp.status === "ativo");
   const pausedExpenses = expenses.filter((exp) => exp.status === "pausado");
