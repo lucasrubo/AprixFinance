@@ -2,82 +2,47 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  // Se está acessando /dashboard sem estar logado, redireciona
-  if (request.nextUrl.pathname.startsWith("/dashboard")) {
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll();
-          },
-          setAll(cookiesToSet) {
-            // Não faz nada aqui para simplificar
-          },
-        },
-      },
-    );
+  const { pathname } = request.nextUrl;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  const isDashboard = pathname.startsWith("/dashboard");
+  const isAuth = pathname.startsWith("/auth");
+  const isRoot = pathname === "/";
 
-    if (!user) {
-      console.log("🚫 Redirecionando para /auth/login");
-      const url = request.nextUrl.clone();
-      url.pathname = "/auth/login";
-      return NextResponse.redirect(url);
-    }
+  if (!isDashboard && !isAuth && !isRoot) {
+    return NextResponse.next();
   }
 
-  // Se está logado e tentando acessar /auth, redireciona para dashboard
-  if (request.nextUrl.pathname.startsWith("/auth")) {
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll();
-          },
-          setAll() {},
+  // Single Supabase call for all route checks
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
         },
+        setAll() {},
       },
-    );
+    },
+  );
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    if (user) {
-      console.log("✅ Usuário logado, redirecionando para /dashboard");
-      const url = request.nextUrl.clone();
-      url.pathname = "/dashboard";
-      return NextResponse.redirect(url);
-    }
+  const url = request.nextUrl.clone();
+
+  if (isDashboard && !user) {
+    url.pathname = "/auth/login";
+    return NextResponse.redirect(url);
   }
 
-  // Se está acessando / raiz
-  if (request.nextUrl.pathname === "/") {
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll();
-          },
-          setAll() {},
-        },
-      },
-    );
+  if (isAuth && user) {
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    const url = request.nextUrl.clone();
+  if (isRoot) {
     url.pathname = user ? "/dashboard" : "/auth/login";
     return NextResponse.redirect(url);
   }
@@ -87,13 +52,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+    // Only run on page routes, skip all static assets
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|otf)).*)",
   ],
 };

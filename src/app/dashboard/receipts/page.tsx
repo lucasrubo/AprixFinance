@@ -5,37 +5,76 @@ export const dynamic = "force-dynamic";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { CreateReceiptModal } from "@/shared/components/create-receipt-modal";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
+import { ReceiptCard } from "@/features/receipts/components/receipt-card";
 import { Button } from "@/shared/components/ui/button";
-import { Input } from "@/shared/components/ui/input";
-import { CurrencyInput } from "@/shared/components/ui/currency-input";
-import { Label } from "@/shared/components/ui/label";
-import { Plus, Trash2, DollarSign, Calendar, Loader2 } from "lucide-react";
+import { Skeleton } from "@/shared/components/ui/skeleton";
+import { Plus, ReceiptText } from "lucide-react";
 import {
   getReceiptsAction,
-  createReceiptAction,
-  updateReceiptAction,
   deleteReceiptAction,
-  getMonthlyStatsAction,
 } from "@/features/receipts/actions/receipt-actions";
 import { getGroups } from "@/features/admin/actions/group-actions";
 import { Receipt, Group } from "@/shared/types";
 
+// ─── Skeleton ────────────────────────────────────────────────────────────────
+
+function ReceiptCardSkeleton() {
+  return (
+    <div className="rounded-xl border bg-card p-4 space-y-3">
+      <div className="flex items-start justify-between">
+        <div className="space-y-2 flex-1">
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-3 w-1/3" />
+        </div>
+        <Skeleton className="h-5 w-16 rounded-full" />
+      </div>
+      <Skeleton className="h-7 w-1/2" />
+      <div className="flex gap-2">
+        <Skeleton className="h-5 w-20 rounded-full" />
+        <Skeleton className="h-5 w-16 rounded-full" />
+      </div>
+      <div className="flex gap-2 pt-1">
+        <Skeleton className="h-8 flex-1" />
+        <Skeleton className="h-8 w-10" />
+      </div>
+    </div>
+  );
+}
+
+// ─── Empty state ─────────────────────────────────────────────────────────────
+
+function EmptyState({ onNew }: { onNew: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 text-center gap-4">
+      <div className="rounded-full bg-muted p-6">
+        <ReceiptText className="h-10 w-10 text-muted-foreground" />
+      </div>
+      <div>
+        <p className="font-semibold text-base">Nenhum recibo ainda</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Adicione seu primeiro recibo para começar a controlar suas finanças.
+        </p>
+      </div>
+      <Button onClick={onNew}>
+        <Plus className="h-4 w-4 mr-2" />
+        Novo Recibo
+      </Button>
+    </div>
+  );
+}
+
+// ─── Page content ─────────────────────────────────────────────────────────────
+
 function ReceiptsPageContent() {
   const searchParams = useSearchParams();
-  const [receipts, setReceipts] = useState<any[]>([]);
+
+  const [receipts, setReceipts] = useState<(Receipt & { groups?: { nome: string } | null })[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     loadData();
-    // Check if should open create modal
     if (searchParams.get("create") === "true") {
       setShowCreateModal(true);
     }
@@ -49,52 +88,38 @@ function ReceiptsPageContent() {
     ]);
 
     if (receiptsResult.success) {
-      // Mapear os dados para incluir created_by
-      const mappedReceipts = (receiptsResult.data || []).map(
-        (receipt: any) => ({
-          ...receipt,
-          created_by: receipt.users,
-        }),
-      );
-      setReceipts(mappedReceipts);
+      const mapped = (receiptsResult.data ?? []).map((r: any) => ({
+        ...r,
+        created_by: r.users ?? undefined,
+      }));
+      setReceipts(mapped);
     }
+
     if (groupsResult.success) {
-      setGroups(groupsResult.groups || []);
+      setGroups(groupsResult.groups ?? []);
     }
+
     setIsLoading(false);
   };
 
   const handleDelete = async (receiptId: string) => {
-    if (confirm("Tem certeza que deseja excluir este recibo?")) {
-      const result = await deleteReceiptAction(receiptId);
-      if (result.success) {
-        await loadData();
-      } else {
-        alert(result.error);
-      }
+    if (!confirm("Tem certeza que deseja excluir este recibo?")) return;
+    const result = await deleteReceiptAction(receiptId);
+    if (result.success) {
+      await loadData();
+    } else {
+      alert(result.error);
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    // Assumir que a string está no formato YYYY-MM-DD e formatar diretamente
-    const [year, month, day] = dateString.split("-");
-    return `${day}/${month}/${year}`;
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      {/* Header */}
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Recibos</h1>
-          <p className="text-muted-foreground">
-            Gerencie seus recibos e despesas.
+          <h1 className="text-2xl font-bold tracking-tight">Recibos</h1>
+          <p className="text-sm text-muted-foreground">
+            Gerencie suas entradas e despesas.
           </p>
         </div>
         <Button onClick={() => setShowCreateModal(true)}>
@@ -103,6 +128,7 @@ function ReceiptsPageContent() {
         </Button>
       </div>
 
+      {/* Modal */}
       {showCreateModal && (
         <CreateReceiptModal
           isOpen={showCreateModal}
@@ -113,55 +139,24 @@ function ReceiptsPageContent() {
           }}
         />
       )}
+
+      {/* Grid */}
       {isLoading ? (
-        <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <ReceiptCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : receipts.length === 0 ? (
+        <EmptyState onNew={() => setShowCreateModal(true)} />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {receipts.map((receipt) => (
-            <Card
+            <ReceiptCard
               key={receipt.id}
-              className="hover:shadow-md transition-shadow"
-            >
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">{receipt.titulo}</CardTitle>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  {formatDate(receipt.data)}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-2 text-lg font-semibold">
-                  <DollarSign className="h-5 w-5 text-green-600" />
-                  {formatCurrency(receipt.valor)}
-                </div>
-                {receipt.descricao && (
-                  <p className="text-sm text-muted-foreground">
-                    {receipt.descricao}
-                  </p>
-                )}
-                {receipt.groups && (
-                  <div className="text-sm">
-                    <span className="font-medium">Grupo:</span>{" "}
-                    {receipt.groups.nome}
-                  </div>
-                )}
-                {receipt.created_by && (
-                  <div className="text-sm text-muted-foreground">
-                    Criado por {receipt.created_by.nome}
-                  </div>
-                )}
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(receipt.id)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              receipt={receipt}
+              onDelete={handleDelete}
+            />
           ))}
         </div>
       )}
@@ -169,14 +164,21 @@ function ReceiptsPageContent() {
   );
 }
 
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function ReceiptsPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-white/80 px-4 py-3 text-sm shadow-sm dark:bg-white/5">
-            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-            <span className="text-muted-foreground">Carregando...</span>
+        <div className="space-y-6">
+          <div className="flex flex-col gap-1">
+            <Skeleton className="h-7 w-32" />
+            <Skeleton className="h-4 w-56" />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <ReceiptCardSkeleton key={i} />
+            ))}
           </div>
         </div>
       }

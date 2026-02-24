@@ -3,127 +3,162 @@
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
+import { Separator } from "@/shared/components/ui/separator";
 import { Receipt } from "@/shared/types";
-import { Calendar, Store, DollarSign, Edit, Trash2, User } from "lucide-react";
+import {
+  Calendar,
+  Trash2,
+  Edit,
+  User,
+  CreditCard,
+  Banknote,
+  Zap,
+  Users,
+  TrendingUp,
+  TrendingDown,
+} from "lucide-react";
 
 interface ReceiptCardProps {
-  receipt: Receipt;
+  receipt: Receipt & { groups?: { nome: string } | null };
   onEdit?: (receipt: Receipt) => void;
   onDelete?: (receiptId: string) => void;
 }
 
+const CURRENCY = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+
+function formatDate(dateString: string) {
+  const [year, month, day] = dateString.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+function formatCurrency(amount: number) {
+  return CURRENCY.format(amount);
+}
+
+const PAYMENT_INFO: Record<
+  string,
+  { label: string; icon: React.ReactNode; color: string }
+> = {
+  debito:   { label: "Débito",   icon: <CreditCard className="h-3 w-3" />, color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" },
+  credito:  { label: "Crédito",  icon: <CreditCard className="h-3 w-3" />, color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300" },
+  dinheiro: { label: "Dinheiro", icon: <Banknote className="h-3 w-3" />,   color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300" },
+  pix:      { label: "PIX",      icon: <Zap className="h-3 w-3" />,        color: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300" },
+};
+
 export function ReceiptCard({ receipt, onEdit, onDelete }: ReceiptCardProps) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    // Assumir que a string está no formato YYYY-MM-DD e formatar diretamente
-    const [year, month, day] = dateString.split("-");
-    return `${day}/${month}/${year}`;
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "validated":
-        return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300";
-      case "processed":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300";
-      default:
-        return "bg-muted text-muted-foreground";
-    }
-  };
-
-  const getTypeColor = (tipo: string) => {
-    switch (tipo) {
-      case "entrada":
-        return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300";
-      case "saida":
-        return "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300";
-      default:
-        return "bg-muted text-muted-foreground";
-    }
-  };
-
-  const getTypeText = (tipo: string) => {
-    switch (tipo) {
-      case "entrada":
-        return "Entrada";
-      case "saida":
-        return "Saída";
-      default:
-        return "Desconhecido";
-    }
-  };
+  const isEntrada = receipt.tipo === "entrada";
+  const payment = receipt.categoria_pagamento ? PAYMENT_INFO[receipt.categoria_pagamento] : null;
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-lg">{receipt.titulo}</CardTitle>
-            <CardDescription className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              {formatDate(receipt.data)}
-            </CardDescription>
+    <Card className={`relative overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5`}>
+      {/* Barra lateral colorida indicando tipo */}
+      <div
+        className={`absolute left-0 top-0 h-full w-1 ${isEntrada ? "bg-emerald-500" : "bg-rose-500"}`}
+      />
+
+      <CardHeader className="pl-5 pb-2 pt-4">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="font-semibold text-sm leading-tight truncate" title={receipt.titulo}>
+              {receipt.titulo}
+            </p>
+            <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
+              <Calendar className="h-3 w-3 shrink-0" />
+              <span>{formatDate(receipt.data)}</span>
+            </div>
           </div>
+
+          <Badge
+            className={`shrink-0 text-xs ${
+              isEntrada
+                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                : "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300"
+            }`}
+          >
+            {isEntrada ? (
+              <TrendingUp className="h-3 w-3 mr-1" />
+            ) : (
+              <TrendingDown className="h-3 w-3 mr-1" />
+            )}
+            {isEntrada ? "Entrada" : "Saída"}
+          </Badge>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-lg font-semibold">
-            <DollarSign
-              className={`h-5 w-5 ${receipt.tipo === "entrada" ? "text-green-600" : "text-red-600"}`}
-            />
-            {formatCurrency(receipt.valor)}
-          </div>
-          <Badge className={getTypeColor(receipt.tipo)}>
-            {getTypeText(receipt.tipo)}
-          </Badge>
-        </div>
+      <CardContent className="pl-5 space-y-3 pb-4">
+        {/* Valor destacado */}
+        <p
+          className={`text-xl font-bold tabular-nums ${
+            isEntrada ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+          }`}
+        >
+          {isEntrada ? "+" : "-"}{formatCurrency(receipt.valor)}
+        </p>
 
+        {/* Badges de metadados */}
+        {(payment || receipt.groups) && (
+          <div className="flex flex-wrap gap-1.5">
+            {payment && (
+              <Badge variant="secondary" className={`text-xs gap-1 ${payment.color}`}>
+                {payment.icon}
+                {payment.label}
+              </Badge>
+            )}
+            {receipt.groups && (
+              <Badge variant="secondary" className="text-xs gap-1">
+                <Users className="h-3 w-3" />
+                {receipt.groups.nome}
+              </Badge>
+            )}
+          </div>
+        )}
+
+        {/* Descrição */}
         {receipt.descricao && (
-          <p className="text-sm text-muted-foreground">{receipt.descricao}</p>
+          <p className="text-xs text-muted-foreground line-clamp-2">{receipt.descricao}</p>
         )}
 
+        {/* Criado por */}
         {receipt.created_by && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <User className="h-3 w-3" />
-            <span>Criado por {receipt.created_by.nome}</span>
+          <>
+            <Separator />
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <User className="h-3 w-3 shrink-0" />
+              <span className="truncate">{receipt.created_by.nome}</span>
+            </div>
+          </>
+        )}
+
+        {/* Ações */}
+        {(onEdit || onDelete) && (
+          <div className="flex gap-2 pt-1">
+            {onEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onEdit(receipt)}
+                className="flex-1 h-8 text-xs"
+              >
+                <Edit className="h-3 w-3 mr-1" />
+                Editar
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onDelete(receipt.id)}
+                className="h-8 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            )}
           </div>
         )}
-
-        <div className="flex gap-2 pt-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onEdit?.(receipt)}
-            className="flex-1"
-          >
-            <Edit className="h-4 w-4 mr-1" />
-            Editar
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onDelete?.(receipt.id)}
-            className="text-red-600 hover:text-red-700"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );

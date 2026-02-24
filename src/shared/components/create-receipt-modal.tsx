@@ -26,6 +26,7 @@ import { createReceiptAction } from "@/features/receipts/actions/receipt-actions
 import { getGroups } from "@/features/admin/actions/group-actions";
 import { CameraCapture } from "@/features/receipts/components/camera-capture";
 import { Group } from "@/shared/types";
+import { createClient } from "@/shared/utils/supabase/client";
 
 interface CreateReceiptModalProps {
   isOpen: boolean;
@@ -80,13 +81,18 @@ export function CreateReceiptModal({
 
   const processReceiptOcr = async (imageBase64: string) => {
     setIsProcessingOcr(true);
-    
+
     try {
-      // Aqui você vai fazer a chamada para a API de OCR
-      const response = await fetch('/api/receipts/ocr', {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const apiUrl = process.env.NEXT_PUBLIC_FINANCE_API_URL || "http://localhost:4000";
+      const response = await fetch(`${apiUrl}/api/receipts/ocr`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           image: imageBase64,

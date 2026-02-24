@@ -41,7 +41,7 @@ export function DashboardClient({
   const { openCreateReceiptModal } = useCreateReceiptModal();
   const router = useRouter();
   const [isReloading, setIsReloading] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768); // Exemplo simples para detectar mobile
+  const [isMobile, setIsMobile] = useState(false);
 
   React.useEffect(() => {
     const handleResize = () => {

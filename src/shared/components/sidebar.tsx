@@ -29,6 +29,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
   SidebarSeparator,
+  useSidebar,
 } from "@/shared/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { Badge } from "@/shared/components/ui/badge";
@@ -101,11 +102,16 @@ export function Sidebar() {
   const { isAdmin } = useUserRole();
   const { user, loading: userLoading } = useUserProfile();
   const [isPending, startTransition] = useTransition();
+  const { isMobile, setOpenMobile } = useSidebar();
 
   const handleSignOut = () => {
     startTransition(async () => {
       await signOutAction();
     });
+  };
+
+  const handleNavClick = () => {
+    if (isMobile) setOpenMobile(false);
   };
 
   const renderNavGroup = (label: string, items: NavItem[]) => (
@@ -124,7 +130,7 @@ export function Sidebar() {
                     isActive={isActive}
                     tooltip={item.title}
                   >
-                    <Link href={item.href}>
+                    <Link href={item.href} onClick={handleNavClick}>
                       <item.icon className="text-muted-foreground" />
                       <span>{item.title}</span>
                     </Link>
