@@ -4,6 +4,8 @@ import { Inter } from "next/font/google";
 import type React from "react";
 import "./globals.css";
 
+import { VercelAnalyticsAndSpeed } from "@/shared/components/vercel-analytics-speed";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const viewport: Viewport = {
@@ -65,6 +67,7 @@ export default function RootLayout({
         />
         <ThemeProvider />
         {children}
+        <VercelAnalyticsAndSpeed />
       </body>
     </html>
   );
