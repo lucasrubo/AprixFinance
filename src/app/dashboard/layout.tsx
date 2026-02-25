@@ -2,6 +2,7 @@
 
 import { TransactionModal } from "@/features/dashboard/components/transaction-modal";
 import type { TransactionItemProps } from "@/features/dashboard/types";
+import { BottomNav } from "@/shared/components/bottom-nav";
 import { CreateReceiptModal } from "@/shared/components/create-receipt-modal";
 import { Header } from "@/shared/components/header";
 import { Sidebar as AppSidebar } from "@/shared/components/sidebar";
@@ -96,10 +97,11 @@ function DashboardLayoutClient({
           <AppSidebar />
           <SidebarInset className="font-sans lg:rounded-[32px] lg:border lg:border-border/50 lg:bg-card/80 lg:shadow-lg">
             <Header onTransactionSelect={handleTransactionSelect} />
-            <div className="flex-1 overflow-y-auto px-4 py-6 lg:px-12 lg:py-10">
+            <div className="flex-1 overflow-y-auto px-4 pt-6 pb-28 md:pb-10 lg:px-12 lg:pt-10 lg:pb-10">
               <div className="mx-auto w-full max-w-6xl">{children}</div>
             </div>
           </SidebarInset>
+          <BottomNav />
         </div>
         <TransactionModal
           transaction={selectedTransaction}

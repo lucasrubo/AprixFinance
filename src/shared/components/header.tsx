@@ -109,7 +109,7 @@ export function Header({ onTransactionSelect }: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:h-20 lg:px-8 lg:rounded-t-xl">
       <div className="flex flex-1 items-center gap-3">
-        <SidebarTrigger className="lg:-ml-4" />
+        <SidebarTrigger className="hidden md:flex lg:-ml-4" />
         <div className="relative hidden flex-1 items-center md:flex">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input

@@ -100,24 +100,20 @@ export function DashboardClient({
           color="blue"
           onClick={openCreateReceiptModal}
         />
-        {!isMobile && (
-          <>
-            <ActionCard
-              title="Gastos Fixos"
-              description="Gerenciar despesas recorrentes"
-              icon={PieChart}
-              color="emerald"
-              href="/dashboard/fixed-expenses"
-            />
-            <ActionCard
-              title="Gerenciar Grupos"
-              description="Organizar finanças familiares"
-              icon={Users}
-              color="purple"
-              href="/dashboard/groups"
-            />
-          </>
-        )}
+        <ActionCard
+          title="Gastos Fixos"
+          description="Gerenciar despesas recorrentes"
+          icon={PieChart}
+          color="emerald"
+          href="/dashboard/fixed-expenses"
+        />
+        <ActionCard
+          title="Gerenciar Grupos"
+          description="Organizar finanças familiares"
+          icon={Users}
+          color="purple"
+          href="/dashboard/groups"
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -210,7 +206,6 @@ export function DashboardClient({
 
         <div className="flex flex-col gap-6">
           <CreditCardWidget cards={creditCardStats} />
-          <AIAssistantCard />
         </div>
       </div>
     </div>

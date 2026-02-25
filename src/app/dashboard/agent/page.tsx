@@ -19,11 +19,7 @@ export default async function AgentPage() {
     user?.email ||
     undefined;
 
-  return (
-    <div className="space-y-6">
-      <AgentChatPanel userName={userName} />
-    </div>
-  );
+  return <AgentChatPanel userName={userName} />;
 }
 
 export const metadata = {
