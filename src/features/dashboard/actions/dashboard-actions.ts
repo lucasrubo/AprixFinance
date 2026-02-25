@@ -31,10 +31,17 @@ export async function getFinancialChartData(period: "30d" | "2m" | "1y") {
     const startDateStr = startDate.toISOString().split("T")[0];
     const endDateStr = endDate.toISOString().split("T")[0];
 
-    // Get receipts data
+    // Get user for RLS-safe queries
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "Não autenticado" };
+
+    // Receipts dentro do período (inclui campos de parcela)
     const { data: receipts, error: receiptsError } = await supabase
       .from("receipts")
-      .select("valor, data, tipo, user_id")
+      .select("valor, data, tipo, parcelas_total, parcelas_valor")
+      .eq("user_id", user.id)
       .gte("data", startDateStr)
       .lte("data", endDateStr);
 
@@ -43,11 +50,23 @@ export async function getFinancialChartData(period: "30d" | "2m" | "1y") {
       return { success: false, error: receiptsError.message };
     }
 
-    // Get fixed expenses data - for chart, we need to get occurrences
-    // For simplicity, get fixed expenses created in the period
+    // Parcelados de antes do período com parcelas ainda ativas nele
+    const prevLookback = new Date(startDate);
+    prevLookback.setMonth(prevLookback.getMonth() - 24);
+    const { data: prevParcelados } = await supabase
+      .from("receipts")
+      .select("valor, data, parcelas_total, parcelas_valor")
+      .eq("user_id", user.id)
+      .eq("tipo", "saida")
+      .gt("parcelas_total", 1)
+      .lt("data", startDateStr)
+      .gte("data", prevLookback.toISOString().split("T")[0]);
+
+    // Gastos fixos criados no período
     const { data: fixedExpenses, error: fixedError } = await supabase
       .from("fixed_expenses")
       .select("valor_parcela, data_inicio, user_id")
+      .eq("user_id", user.id)
       .gte("data_inicio", startDateStr)
       .lte("data_inicio", endDateStr);
 
@@ -67,7 +86,8 @@ export async function getFinancialChartData(period: "30d" | "2m" | "1y") {
       currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    // Add receipts (income if tipo = 'entrada', expenses if 'saida')
+    // Adicionar receitas do período
+    // Para parcelados: usar parcelas_valor (não valor total) no dia da compra
     for (const receipt of receipts ?? []) {
       const date = receipt.data;
       if (dataMap.has(date)) {
@@ -76,7 +96,37 @@ export async function getFinancialChartData(period: "30d" | "2m" | "1y") {
         if (receipt.tipo === "entrada") {
           current.income += receipt.valor;
         } else {
-          current.expenses += receipt.valor;
+          const parcelas = receipt.parcelas_total ?? 1;
+          const parcelaValor =
+            parcelas > 1
+              ? (receipt.parcelas_valor ??
+                Math.round((receipt.valor / parcelas) * 100) / 100)
+              : receipt.valor;
+          current.expenses += parcelaValor;
+        }
+      }
+    }
+
+    // Distribuir parcelas de compras anteriores cujos vencimentos caem no período
+    for (const r of prevParcelados ?? []) {
+      const parcelas = r.parcelas_total ?? 1;
+      const parcelaValor =
+        r.parcelas_valor ??
+        Math.round((r.valor / parcelas) * 100) / 100;
+      const purchaseDate = new Date(`${r.data}T12:00:00`);
+
+      for (let i = 1; i < parcelas; i++) {
+        // Cada parcela cai no mesmo dia do mês, n meses após a compra
+        const installmentDate = new Date(
+          purchaseDate.getFullYear(),
+          purchaseDate.getMonth() + i,
+          purchaseDate.getDate(),
+        );
+        const installmentStr = installmentDate.toISOString().split("T")[0];
+
+        if (dataMap.has(installmentStr)) {
+          // biome-ignore lint/style/noNonNullAssertion: dataMap.has(installmentStr) garante que o valor existe
+          dataMap.get(installmentStr)!.expenses += parcelaValor;
         }
       }
     }

@@ -158,7 +158,7 @@ export function CreateReceiptModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.titulo || !formData.valor) {
+    if (!formData.titulo || !formData.valor || !formData.groupId) {
       alert("Por favor, preencha todos os campos obrigatórios.");
       return;
     }
@@ -173,7 +173,7 @@ export function CreateReceiptModal({
     data.append("tipo", formData.tipo);
     data.append("categoria_pagamento", formData.categoria_pagamento);
     data.append("parcelas_total", String(formData.parcelas_total));
-    if (formData.groupId) data.append("groupId", formData.groupId);
+    data.append("groupId", formData.groupId);
     if (formData.credit_card_id)
       data.append("credit_card_id", formData.credit_card_id);
 
@@ -434,7 +434,7 @@ export function CreateReceiptModal({
                   )}
 
                 <div>
-                  <Label>Grupo (Opcional)</Label>
+                  <Label>Grupo *</Label>
                   <Select
                     value={formData.groupId}
                     onValueChange={(value) =>

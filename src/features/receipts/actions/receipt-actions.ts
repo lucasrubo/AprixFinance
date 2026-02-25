@@ -123,7 +123,9 @@ export async function getReceiptsAction() {
       return { error: "Usuário não autenticado" };
     }
 
-    const { data, error } = await supabase
+    const groupIds = await getUserGroupIds(user.id);
+
+    let query = supabase
       .from("receipts")
       .select(
         `
@@ -137,10 +139,17 @@ export async function getReceiptsAction() {
         )
       `,
       )
-      .or(
-        `user_id.eq.${user.id},group_id.in.(${await getUserGroupIds(user.id)})`,
-      )
       .order("created_at", { ascending: false });
+
+    if (groupIds) {
+      query = query.or(
+        `user_id.eq.${user.id},group_id.in.(${groupIds})`,
+      ) as typeof query;
+    } else {
+      query = query.eq("user_id", user.id) as typeof query;
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("Erro ao buscar recibos:", error);
@@ -189,7 +198,7 @@ export async function updateReceiptAction(
     const groupId = formData.get("groupId") as string;
     const tipo = (formData.get("tipo") as string) || "saida";
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       titulo,
       valor,
       descricao,

@@ -34,6 +34,10 @@ export interface Receipt {
   data: string;
   tipo: "entrada" | "saida";
   categoria_pagamento?: "credito" | "debito" | "dinheiro" | "pix";
+  parcelas_total?: number;
+  parcelas_valor?: number;
+  credit_card_id?: string | null;
+  recibo_imagem_url?: string | null;
   created_at: string;
   created_by?: User; // Usuário que criou o receipt
 }

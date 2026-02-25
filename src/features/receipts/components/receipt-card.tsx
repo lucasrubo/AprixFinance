@@ -5,6 +5,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 import { Separator } from "@/shared/components/ui/separator";
 import type { Receipt } from "@/shared/types";
+import type { ReactNode } from "react";
 import {
   Banknote,
   Calendar,
@@ -40,7 +41,7 @@ function formatCurrency(amount: number) {
 
 const PAYMENT_INFO: Record<
   string,
-  { label: string; icon: React.ReactNode; color: string }
+  { label: string; icon: ReactNode; color: string }
 > = {
   debito: {
     label: "Débito",
@@ -129,7 +130,7 @@ export function ReceiptCard({ receipt, onEdit, onDelete }: ReceiptCardProps) {
         </p>
 
         {/* Badges de metadados */}
-        {(payment || receipt.groups) && (
+        {(payment || receipt.groups || (receipt.parcelas_total ?? 1) > 1) && (
           <div className="flex flex-wrap gap-1.5">
             {payment && (
               <Badge
@@ -138,6 +139,14 @@ export function ReceiptCard({ receipt, onEdit, onDelete }: ReceiptCardProps) {
               >
                 {payment.icon}
                 {payment.label}
+              </Badge>
+            )}
+            {(receipt.parcelas_total ?? 1) > 1 && (
+              <Badge
+                variant="secondary"
+                className="text-xs gap-1 bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300"
+              >
+                {receipt.parcelas_total}x de {formatCurrency(receipt.parcelas_valor ?? receipt.valor / (receipt.parcelas_total ?? 1))}
               </Badge>
             )}
             {receipt.groups && (

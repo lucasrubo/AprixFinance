@@ -3,6 +3,11 @@ import { Badge } from "@/shared/components/ui/badge";
 import { TrendingDown, TrendingUp, User } from "lucide-react";
 import type { TransactionItemComponentProps } from "../types";
 
+const CURRENCY = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
+
 export function TransactionItem({
   title,
   group,
@@ -11,9 +16,12 @@ export function TransactionItem({
   type,
   description,
   created_by,
+  parcelas_total,
+  parcelas_valor,
   onClick,
 }: TransactionItemComponentProps) {
   const isExpense = type === "expense";
+  const isParcelado = (parcelas_total ?? 1) > 1;
 
   return (
     <button
@@ -23,7 +31,7 @@ export function TransactionItem({
     >
       <div className="flex items-center gap-4">
         <div
-          className={`flex h-11 w-11 items-center justify-center rounded-2xl text-sm font-semibold ${
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-sm font-semibold ${
             isExpense
               ? "bg-rose-500/10 text-rose-500"
               : "bg-emerald-500/10 text-emerald-500"
@@ -37,6 +45,11 @@ export function TransactionItem({
             <Badge variant="secondary" className="rounded-full text-[11px]">
               {group}
             </Badge>
+            {isParcelado && (
+              <Badge className="rounded-full text-[10px] bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
+                {parcelas_total}x de {CURRENCY.format(parcelas_valor ?? 0)}
+              </Badge>
+            )}
           </div>
           <p className="text-xs text-muted-foreground">{date}</p>
           {description && (
@@ -52,7 +65,7 @@ export function TransactionItem({
           )}
         </div>
       </div>
-      <div className="text-right">
+      <div className="text-right shrink-0">
         <p
           className={`text-sm font-semibold ${
             isExpense ? "text-rose-500" : "text-emerald-500"
@@ -61,6 +74,11 @@ export function TransactionItem({
           {isExpense ? "-" : "+"}
           {amount}
         </p>
+        {isParcelado && isExpense && (
+          <p className="text-[10px] text-muted-foreground tabular-nums">
+            {CURRENCY.format(parcelas_valor ?? 0)}/mês
+          </p>
+        )}
         <span className="text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
           Ver detalhes
         </span>

@@ -125,7 +125,7 @@ export async function getMonthlyStatsWithFixedExpenses(month?: string) {
     endDate.setDate(0);
     const endDateStr = endDate.toISOString().slice(0, 10);
 
-    // Buscar receitas normais
+    // Buscar receitas normais do mês atual
     const { data: receipts, error } = await supabase
       .from("receipts")
       .select("*")
@@ -137,6 +137,18 @@ export async function getMonthlyStatsWithFixedExpenses(month?: string) {
       console.error("Erro ao buscar receitas:", error);
       return { error: "Erro ao buscar receitas" };
     }
+
+    // Buscar parcelamentos de meses anteriores ainda ativos neste mês
+    const prevLookback = new Date(`${currentMonth}-01T12:00:00`);
+    prevLookback.setMonth(prevLookback.getMonth() - 24);
+    const { data: prevParcelados } = await supabase
+      .from("receipts")
+      .select("id, valor, parcelas_total, parcelas_valor, data")
+      .eq("user_id", user.id)
+      .eq("tipo", "saida")
+      .gt("parcelas_total", 1)
+      .lt("data", startDate)
+      .gte("data", prevLookback.toISOString().split("T")[0]);
 
     // Gerar ocorrências de gastos fixos para o mês
     const fixedExpenseOccurrences = await generateFixedExpenseOccurrences(
@@ -151,15 +163,34 @@ export async function getMonthlyStatsWithFixedExpenses(month?: string) {
 
     // Calcular valores
     const totalIncome = incomeReceipts.reduce((sum, r) => sum + r.valor, 0);
-    const totalExpensesFromReceipts = expenseReceipts.reduce(
-      (sum, r) => sum + r.valor,
-      0,
-    );
+
+    // Parcelados no mês atual: contar apenas a parcela do mês (não o total da compra)
+    const totalExpensesFromReceipts = expenseReceipts.reduce((sum, r) => {
+      const parcelas = r.parcelas_total ?? 1;
+      if (parcelas > 1) {
+        return sum + (r.parcelas_valor ?? Math.round((r.valor / parcelas) * 100) / 100);
+      }
+      return sum + r.valor;
+    }, 0);
+
+    // Parcelas de meses anteriores ainda ativas neste mês (por mês do calendário)
+    const currentMonthBase = new Date(`${currentMonth}-01T12:00:00`);
+    const totalInstallmentsFromPrev = (prevParcelados ?? []).reduce((sum, r) => {
+      const purchaseDate = new Date(`${r.data}T12:00:00`);
+      const monthsDiff =
+        (currentMonthBase.getFullYear() - purchaseDate.getFullYear()) * 12 +
+        (currentMonthBase.getMonth() - purchaseDate.getMonth());
+      if (monthsDiff > 0 && monthsDiff < (r.parcelas_total ?? 1)) {
+        return sum + (r.parcelas_valor ?? Math.round((r.valor / (r.parcelas_total ?? 1)) * 100) / 100);
+      }
+      return sum;
+    }, 0);
+
     const totalFixedExpenses = fixedExpenseOccurrences.reduce(
       (sum, fe) => sum + fe.valor_parcela,
       0,
     );
-    const totalExpenses = totalExpensesFromReceipts + totalFixedExpenses;
+    const totalExpenses = totalExpensesFromReceipts + totalFixedExpenses + totalInstallmentsFromPrev;
     const netBalance = totalIncome - totalExpenses;
 
     const totalReceipts = allReceipts.length + fixedExpenseOccurrences.length;

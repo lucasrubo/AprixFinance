@@ -16,6 +16,8 @@ export interface TransactionItemProps {
   status?: string;
   sortDate?: string; // Campo auxiliar para ordenação (formato YYYY-MM-DD)
   created_by?: string; // Nome do usuário que criou o item
+  parcelas_total?: number;
+  parcelas_valor?: number;
 }
 
 // Props para o componente ActionCard

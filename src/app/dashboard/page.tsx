@@ -84,6 +84,8 @@ export default async function DashboardPage() {
       data,
       tipo,
       group_id,
+      parcelas_total,
+      parcelas_valor,
       created_at
     `,
     )
@@ -140,7 +142,7 @@ export default async function DashboardPage() {
       id: receipt.id,
       title: receipt.titulo,
       group: receipt.groups?.nome || "Sem grupo",
-      date: formatDate(receipt.data), // Usar string diretamente
+      date: formatDate(receipt.data),
       amount: formatCurrency(receipt.valor),
       type:
         receipt.tipo === "entrada" ? ("income" as const) : ("expense" as const),
@@ -148,8 +150,10 @@ export default async function DashboardPage() {
       itemType: "receipt" as const,
       category: receipt.tipo === "entrada" ? "Receita" : "Despesa",
       status: "concluído",
-      sortDate: receipt.data, // Usar string para ordenação (YYYY-MM-DD)
+      sortDate: receipt.data,
       created_by: receipt.users?.nome,
+      parcelas_total: receipt.parcelas_total ?? 1,
+      parcelas_valor: receipt.parcelas_valor ?? receipt.valor,
     })) || [];
 
   // Formatar os dados dos gastos fixos como ocorrências

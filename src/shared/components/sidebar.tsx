@@ -23,6 +23,7 @@ import {
 import { useUserRole } from "@/shared/hooks/use-user-role";
 import {
   CreditCard,
+  FileText,
   Group,
   LayoutDashboard,
   LogOut,
@@ -70,6 +71,11 @@ const overviewNav: NavItem[] = [
     title: "Cartões",
     icon: CreditCard,
     href: "/dashboard/credit-cards",
+  },
+  {
+    title: "Faturas",
+    icon: FileText,
+    href: "/dashboard/faturas",
   },
 ];
 
