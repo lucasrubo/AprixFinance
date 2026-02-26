@@ -18,6 +18,8 @@ export interface TransactionItemProps {
   created_by?: string; // Nome do usuário que criou o item
   parcelas_total?: number;
   parcelas_valor?: number;
+  installment_number?: number;
+  duracao?: number;
 }
 
 // Props para o componente ActionCard

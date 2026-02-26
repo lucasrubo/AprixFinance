@@ -18,10 +18,14 @@ export function TransactionItem({
   created_by,
   parcelas_total,
   parcelas_valor,
+  installment_number,
+  duracao,
+  itemType,
   onClick,
 }: TransactionItemComponentProps) {
   const isExpense = type === "expense";
   const isParcelado = (parcelas_total ?? 1) > 1;
+  const isFixedExpense = itemType === "fixed_expense";
 
   return (
     <button
@@ -45,7 +49,22 @@ export function TransactionItem({
             <Badge variant="secondary" className="rounded-full text-[11px]">
               {group}
             </Badge>
-            {isParcelado && (
+            {isFixedExpense && duracao && installment_number && (
+              <Badge className="rounded-full text-[10px] bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
+                Parcela {installment_number}/{duracao}
+              </Badge>
+            )}
+            {isFixedExpense && !duracao && (
+              <Badge className="rounded-full text-[10px] bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                Recorrente
+              </Badge>
+            )}
+            {!isFixedExpense && isParcelado && installment_number && (
+              <Badge className="rounded-full text-[10px] bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
+                Parcela {installment_number}/{parcelas_total}
+              </Badge>
+            )}
+            {!isFixedExpense && isParcelado && !installment_number && (
               <Badge className="rounded-full text-[10px] bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
                 {parcelas_total}x de {CURRENCY.format(parcelas_valor ?? 0)}
               </Badge>
@@ -74,7 +93,7 @@ export function TransactionItem({
           {isExpense ? "-" : "+"}
           {amount}
         </p>
-        {isParcelado && isExpense && (
+        {!isFixedExpense && isParcelado && isExpense && (
           <p className="text-[10px] text-muted-foreground tabular-nums">
             {CURRENCY.format(parcelas_valor ?? 0)}/mês
           </p>

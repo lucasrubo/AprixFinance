@@ -12,6 +12,8 @@ export interface FixedExpenseOccurrence {
   status: string;
   descricao?: string;
   created_by?: string;
+  installment_number?: number;
+  duracao?: number;
 }
 
 // Gerar ocorrências de gastos fixos para um período específico
@@ -52,31 +54,40 @@ export async function generateFixedExpenseOccurrences(
       );
       const endPeriod = new Date(endDate);
 
-      // Calcular a primeira ocorrência
-      const firstPaymentDate = new Date(startPeriod);
-      firstPaymentDate.setDate(expense.data_pagamento);
+      const expenseStartDate = new Date(`${expense.data_inicio}T12:00:00`);
 
-      // Se o dia do pagamento já passou no mês de início, começar no próximo mês
-      if (firstPaymentDate < startPeriod) {
-        firstPaymentDate.setMonth(firstPaymentDate.getMonth() + 1);
+      // Helper: retorna o dia de pagamento clampado ao último dia do mês
+      const clampedPayDay = (year: number, month: number) => {
+        const lastDay = new Date(year, month + 1, 0).getDate();
+        return Math.min(expense.data_pagamento, lastDay);
+      };
+
+      // Calcular a primeira ocorrência (mês de startPeriod, dia clampado)
+      let curYear = startPeriod.getFullYear();
+      let curMonth = startPeriod.getMonth();
+      let payDay = clampedPayDay(curYear, curMonth);
+      let currentPaymentDate = new Date(curYear, curMonth, payDay);
+
+      // Se o dia de pagamento já passou no mês de início, avançar para o próximo mês
+      if (currentPaymentDate < startPeriod) {
+        curMonth += 1;
+        if (curMonth > 11) { curMonth = 0; curYear += 1; }
+        payDay = clampedPayDay(curYear, curMonth);
+        currentPaymentDate = new Date(curYear, curMonth, payDay);
       }
-
-      const currentPaymentDate = new Date(firstPaymentDate);
 
       // Gerar ocorrências mês a mês até o fim do período
       while (currentPaymentDate <= endPeriod) {
-        // Verificar se não ultrapassou a duração (se especificada)
-        if (expense.duracao) {
-          const monthsDiff =
-            (currentPaymentDate.getFullYear() -
-              new Date(expense.data_inicio).getFullYear()) *
-              12 +
-            currentPaymentDate.getMonth() -
-            new Date(expense.data_inicio).getMonth();
+        // Calcular número da parcela (meses desde o início + 1)
+        const installmentNumber =
+          (currentPaymentDate.getFullYear() - expenseStartDate.getFullYear()) *
+            12 +
+          (currentPaymentDate.getMonth() - expenseStartDate.getMonth()) +
+          1;
 
-          if (monthsDiff >= expense.duracao) {
-            break;
-          }
+        // Verificar se não ultrapassou a duração (se especificada)
+        if (expense.duracao && installmentNumber > expense.duracao) {
+          break;
         }
 
         occurrences.push({
@@ -88,10 +99,20 @@ export async function generateFixedExpenseOccurrences(
           occurrence_date: currentPaymentDate.toISOString().split("T")[0],
           status: expense.status,
           descricao: expense.descricao,
+          created_by: expense.created_by,
+          installment_number: installmentNumber,
+          duracao: expense.duracao ?? undefined,
         });
 
-        // Ir para o próximo mês
-        currentPaymentDate.setMonth(currentPaymentDate.getMonth() + 1);
+        // Ir para o próximo mês (clampando ao último dia do mês destino)
+        const nextMonth = currentPaymentDate.getMonth() + 1;
+        const nextYear =
+          nextMonth > 11
+            ? currentPaymentDate.getFullYear() + 1
+            : currentPaymentDate.getFullYear();
+        const nextMonthNorm = nextMonth > 11 ? 0 : nextMonth;
+        const nextPayDay = clampedPayDay(nextYear, nextMonthNorm);
+        currentPaymentDate = new Date(nextYear, nextMonthNorm, nextPayDay);
       }
     }
 

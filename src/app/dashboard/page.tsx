@@ -92,14 +92,16 @@ export default async function DashboardPage() {
     .order("data", { ascending: false })
     .limit(50);
 
-  // Gerar ocorrências de gastos fixos para os últimos 6 meses
+  // Gerar ocorrências de gastos fixos para os últimos 6 meses até o fim do mês atual
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-  const today = new Date();
+  const endOfCurrentMonth = new Date();
+  endOfCurrentMonth.setMonth(endOfCurrentMonth.getMonth() + 1);
+  endOfCurrentMonth.setDate(0); // último dia do mês atual
 
   const fixedExpenseOccurrences = await generateFixedExpenseOccurrences(
     sixMonthsAgo.toISOString().split("T")[0],
-    today.toISOString().split("T")[0],
+    endOfCurrentMonth.toISOString().split("T")[0],
   );
 
   // Buscar nomes dos grupos separadamente se houver recibos
@@ -136,25 +138,41 @@ export default async function DashboardPage() {
     }
   }
 
+  const today = new Date();
+
   // Formatar os dados dos recibos recentes
   const formattedReceipts: TransactionItemProps[] =
-    receiptsWithUsers?.map((receipt: any) => ({
-      id: receipt.id,
-      title: receipt.titulo,
-      group: receipt.groups?.nome || "Sem grupo",
-      date: formatDate(receipt.data),
-      amount: formatCurrency(receipt.valor),
-      type:
-        receipt.tipo === "entrada" ? ("income" as const) : ("expense" as const),
-      description: receipt.descricao || "",
-      itemType: "receipt" as const,
-      category: receipt.tipo === "entrada" ? "Receita" : "Despesa",
-      status: "concluído",
-      sortDate: receipt.data,
-      created_by: receipt.users?.nome,
-      parcelas_total: receipt.parcelas_total ?? 1,
-      parcelas_valor: receipt.parcelas_valor ?? receipt.valor,
-    })) || [];
+    receiptsWithUsers?.map((receipt: any) => {
+      const parcelasTotal = receipt.parcelas_total ?? 1;
+      let installmentNumber: number | undefined;
+      if (parcelasTotal > 1) {
+        const purchaseDate = new Date(`${receipt.data}T12:00:00`);
+        const monthsDiff =
+          (today.getFullYear() - purchaseDate.getFullYear()) * 12 +
+          (today.getMonth() - purchaseDate.getMonth());
+        installmentNumber = Math.min(parcelasTotal, Math.max(1, monthsDiff + 1));
+      }
+      return {
+        id: receipt.id,
+        title: receipt.titulo,
+        group: receipt.groups?.nome || "Sem grupo",
+        date: formatDate(receipt.data),
+        amount: formatCurrency(receipt.valor),
+        type:
+          receipt.tipo === "entrada"
+            ? ("income" as const)
+            : ("expense" as const),
+        description: receipt.descricao || "",
+        itemType: "receipt" as const,
+        category: receipt.tipo === "entrada" ? "Receita" : "Despesa",
+        status: "concluído",
+        sortDate: receipt.data,
+        created_by: receipt.users?.nome,
+        parcelas_total: parcelasTotal,
+        parcelas_valor: receipt.parcelas_valor ?? receipt.valor,
+        installment_number: installmentNumber,
+      };
+    }) || [];
 
   // Formatar os dados dos gastos fixos como ocorrências
   const formattedFixedExpenses: TransactionItemProps[] =
@@ -162,7 +180,7 @@ export default async function DashboardPage() {
       id: occurrence.id,
       title: occurrence.titulo,
       group: "Gasto Fixo",
-      date: formatDate(occurrence.occurrence_date), // Usar string diretamente
+      date: formatDate(occurrence.occurrence_date),
       amount: formatCurrency(occurrence.valor_parcela),
       type: "expense" as const,
       description:
@@ -170,8 +188,10 @@ export default async function DashboardPage() {
       itemType: "fixed_expense" as const,
       category: occurrence.categoria,
       status: "automático",
-      sortDate: occurrence.occurrence_date, // Usar string para ordenação (YYYY-MM-DD)
+      sortDate: occurrence.occurrence_date,
       created_by: occurrence.created_by,
+      installment_number: occurrence.installment_number,
+      duracao: occurrence.duracao,
     })) || [];
 
   // Combinar e ordenar todas as transações por data (mais recentes primeiro)

@@ -62,12 +62,12 @@ export async function getFinancialChartData(period: "30d" | "2m" | "1y") {
       .lt("data", startDateStr)
       .gte("data", prevLookback.toISOString().split("T")[0]);
 
-    // Gastos fixos criados no período
+    // Todos os gastos fixos ativos que já iniciaram até o fim do período
     const { data: fixedExpenses, error: fixedError } = await supabase
       .from("fixed_expenses")
-      .select("valor_parcela, data_inicio, user_id")
+      .select("id, valor_parcela, data_inicio, data_pagamento, duracao, status")
       .eq("user_id", user.id)
-      .gte("data_inicio", startDateStr)
+      .eq("status", "ativo")
       .lte("data_inicio", endDateStr);
 
     if (fixedError) {
@@ -131,13 +131,49 @@ export async function getFinancialChartData(period: "30d" | "2m" | "1y") {
       }
     }
 
-    // Add fixed expenses
+    // Gerar ocorrências mensais de gastos fixos dentro do período (com clamp ao último dia do mês)
     for (const expense of fixedExpenses ?? []) {
-      const date = expense.data_inicio;
-      if (dataMap.has(date)) {
-        // biome-ignore lint/style/noNonNullAssertion: dataMap.has(date) garante que o valor existe
-        const current = dataMap.get(date)!;
-        current.expenses += expense.valor_parcela;
+      const expenseStart = new Date(`${expense.data_inicio}T12:00:00`);
+      const periodStart = new Date(`${startDateStr}T12:00:00`);
+      const periodEnd = new Date(`${endDateStr}T12:00:00`);
+
+      const clampDay = (year: number, month: number) => {
+        const lastDay = new Date(year, month + 1, 0).getDate();
+        return Math.min(expense.data_pagamento, lastDay);
+      };
+
+      const baseDate = new Date(
+        Math.max(expenseStart.getTime(), periodStart.getTime()),
+      );
+      let pYear = baseDate.getFullYear();
+      let pMonth = baseDate.getMonth();
+      let payDate = new Date(pYear, pMonth, clampDay(pYear, pMonth));
+
+      if (payDate < baseDate) {
+        pMonth += 1;
+        if (pMonth > 11) { pMonth = 0; pYear += 1; }
+        payDate = new Date(pYear, pMonth, clampDay(pYear, pMonth));
+      }
+
+      while (payDate <= periodEnd) {
+        // Verificar se ainda está dentro da duração
+        if (expense.duracao) {
+          const monthsDiff =
+            (payDate.getFullYear() - expenseStart.getFullYear()) * 12 +
+            (payDate.getMonth() - expenseStart.getMonth());
+          if (monthsDiff >= expense.duracao) break;
+        }
+
+        const dateStr = payDate.toISOString().split("T")[0];
+        if (dataMap.has(dateStr)) {
+          // biome-ignore lint/style/noNonNullAssertion: dataMap.has(dateStr) garante que o valor existe
+          dataMap.get(dateStr)!.expenses += expense.valor_parcela;
+        }
+
+        const nm = payDate.getMonth() + 1;
+        const ny = nm > 11 ? payDate.getFullYear() + 1 : payDate.getFullYear();
+        const nmNorm = nm > 11 ? 0 : nm;
+        payDate = new Date(ny, nmNorm, clampDay(ny, nmNorm));
       }
     }
 
