@@ -74,7 +74,7 @@ export function FixedExpenseCard({
         <div className="flex items-start justify-between">
           <div className="space-y-1 flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-lg text-foreground">
+              <h3 className="font-semibold text-lg text-foreground whitespace-nowrap overflow-hidden text-ellipsis">
                 {expense.titulo}
               </h3>
               <Badge className={getStatusColor(expense.status)}>
