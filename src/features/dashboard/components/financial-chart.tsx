@@ -19,7 +19,7 @@ import {
 } from "recharts";
 
 interface ChartData {
-  date: string;
+  date: string; // "YYYY-MM"
   income: number;
   expenses: number;
 }
@@ -27,6 +27,34 @@ interface ChartData {
 interface FinancialChartProps {
   className?: string;
 }
+
+const BRL = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  maximumFractionDigits: 0,
+});
+
+// "YYYY-MM" → "jan", "fev", ...
+const formatMonthTick = (dateStr: string) => {
+  const [year, month] = dateStr.split("-").map(Number);
+  const date = new Date(year, month - 1, 1);
+  return date
+    .toLocaleDateString("pt-BR", { month: "short" })
+    .replace(".", "");
+};
+
+// "YYYY-MM" → "Janeiro de 2026"
+const formatMonthFull = (dateStr: string) => {
+  const [year, month] = dateStr.split("-").map(Number);
+  const date = new Date(year, month - 1, 1);
+  return date.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+};
+
+const PERIODS: { key: "30d" | "2m" | "1y"; label: string }[] = [
+  { key: "30d", label: "3M" },
+  { key: "2m", label: "6M" },
+  { key: "1y", label: "1 ano" },
+];
 
 export function FinancialChart({ className }: FinancialChartProps) {
   const [data, setData] = useState<ChartData[]>([]);
@@ -38,9 +66,7 @@ export function FinancialChart({ className }: FinancialChartProps) {
       setIsLoading(true);
       try {
         const response = await fetch(`/api/dashboard/chart?period=${period}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch chart data");
-        }
+        if (!response.ok) throw new Error("Failed to fetch chart data");
         const result = await response.json();
         if (result.success) {
           setData(result.data);
@@ -58,21 +84,6 @@ export function FinancialChart({ className }: FinancialChartProps) {
 
     fetchData();
   }, [period]);
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(value);
-  };
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-    });
-  };
 
   if (isLoading) {
     return (
@@ -92,27 +103,16 @@ export function FinancialChart({ className }: FinancialChartProps) {
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Evolução Financeira</CardTitle>
         <div className="flex gap-2">
-          <Button
-            variant={period === "30d" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setPeriod("30d")}
-          >
-            30 dias
-          </Button>
-          <Button
-            variant={period === "2m" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setPeriod("2m")}
-          >
-            2 meses
-          </Button>
-          <Button
-            variant={period === "1y" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setPeriod("1y")}
-          >
-            1 ano
-          </Button>
+          {PERIODS.map(({ key, label }) => (
+            <Button
+              key={key}
+              variant={period === key ? "default" : "outline"}
+              size="sm"
+              onClick={() => setPeriod(key)}
+            >
+              {label}
+            </Button>
+          ))}
         </div>
       </CardHeader>
       <CardContent>
@@ -123,63 +123,63 @@ export function FinancialChart({ className }: FinancialChartProps) {
                 <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
                 <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
               </linearGradient>
-              <linearGradient id="expensesGradient" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient
+                id="expensesGradient"
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
                 <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
                 <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
               </linearGradient>
             </defs>
+
             <XAxis
               dataKey="date"
-              tickFormatter={formatDate}
+              tickFormatter={formatMonthTick}
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 12 }}
             />
             <YAxis
-              tickFormatter={formatCurrency}
+              tickFormatter={(v) => BRL.format(v)}
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 12 }}
+              width={80}
             />
             <Tooltip
               content={({ active, payload, label }) => {
-                if (active && payload && payload.length && label) {
-                  const date = new Date(label);
-                  const formattedDate = date.toLocaleDateString("pt-BR", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  });
-
-                  return (
-                    <div className="rounded-lg border bg-background p-3 shadow-md">
-                      <p className="text-sm font-medium text-foreground mb-2">
-                        {formattedDate}
-                      </p>
-                      {payload.map((entry, index) => (
+                if (!active || !payload?.length || !label) return null;
+                return (
+                  <div className="rounded-lg border bg-background p-3 shadow-md">
+                    <p className="text-sm font-semibold text-foreground mb-2 capitalize">
+                      {formatMonthFull(label)}
+                    </p>
+                    {payload.map((entry) => (
+                      <div
+                        key={entry.dataKey as string}
+                        className="flex items-center gap-2 text-sm"
+                      >
                         <div
-                          key={index}
-                          className="flex items-center gap-2 text-sm"
-                        >
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: entry.color }}
-                          />
-                          <span className="text-muted-foreground">
-                            {entry.dataKey === "income"
-                              ? "Receitas"
-                              : "Despesas"}
-                            :
-                          </span>
-                          <span className="font-medium text-foreground">
-                            {formatCurrency(entry.value as number)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                }
-                return null;
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: entry.color }}
+                        />
+                        <span className="text-muted-foreground">
+                          {entry.dataKey === "income" ? "Receitas" : "Despesas"}
+                          :
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {new Intl.NumberFormat("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          }).format(entry.value as number)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                );
               }}
             />
             <Area
