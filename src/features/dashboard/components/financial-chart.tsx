@@ -155,7 +155,7 @@ export function FinancialChart({ className }: FinancialChartProps) {
                 return (
                   <div className="rounded-lg border bg-background p-3 shadow-md">
                     <p className="text-sm font-semibold text-foreground mb-2 capitalize">
-                      {formatMonthFull(label)}
+                      {formatMonthFull(String(label))}
                     </p>
                     {payload.map((entry) => (
                       <div
